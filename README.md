@@ -81,6 +81,7 @@ node tests/e2e3.js "$PWD" /tmp/shots
 node tests/e2e4.js "$PWD" /tmp/shots <png-klasörü>
 node tests/e2e5.js "$PWD" /tmp/shots
 node tests/e2e6.js "$PWD" /tmp/shots
+node tests/e2e7.js "$PWD" /tmp/shots   # telefon görüntüleyicisi gibi korumalı çerçevede
 ```
 
 `e2e4.js` için klasörde `dish.png` ve `logo.png` bulunmalıdır. Her test sorunsuz geçince `OK` yazar.

@@ -627,7 +627,9 @@ function seed() {
 }
 let S;
 function load() { try { const j = JSON.parse(lsGet(KEY)); if (j && j.v === 4) return j; } catch (e) {} return null; }
-function save() { const ok = lsSet(KEY, JSON.stringify(S)); if (!ok) setTimeout(() => toast(L("Memoria del browser piena: usa meno foto", "Browser storage full — use fewer photos", "Tarayıcı depolaması dolu — daha az fotoğraf kullanın")), 0); return ok; }
+// some viewers (sandboxed previews, private modes) have no storage: the demo then just runs in memory
+const STORAGE_OK = (() => { try { localStorage.setItem("resto.t", "1"); localStorage.removeItem("resto.t"); return true; } catch (e) { return false; } })();
+function save() { if (!STORAGE_OK) return true; const ok = lsSet(KEY, JSON.stringify(S)); if (!ok) setTimeout(() => toast(L("Memoria del browser piena: usa meno foto", "Browser storage full — use fewer photos", "Tarayıcı depolaması dolu — daha az fotoğraf kullanın")), 0); return ok; }
 S = load() || seed();
 window.addEventListener("storage", e => { if (e.key === KEY) { const n = load(); if (n) { S = n; render(); } } });
 
@@ -700,16 +702,23 @@ function qrSVG(text, size = 168) {
 }
 
 /* ---------------- routing ---------------- */
-function route() { const p = (location.hash || "#/").replace(/^#\/?/, "").split("/"); return { role: p[0] || "", view: p[1] || "", arg: decodeURIComponent(p[2] || "") }; }
+/* The current screen lives in curHash. The address bar is only a mirror: phone file
+   viewers open the page in a sandboxed frame where the URL cannot be changed. */
+let curHash = (() => { try { return location.hash; } catch (e) { return ""; } })();
+function setHash(h, replace) {
+  curHash = h;
+  try { if (replace) history.replaceState(null, "", h); else if (location.hash !== h) location.hash = h; } catch (e) {}
+}
+function route() { const p = (curHash || "#/").replace(/^#\/?/, "").split("/"); return { role: p[0] || "", view: p[1] || "", arg: decodeURIComponent(p[2] || "") }; }
 const APP = window.APP || "all";
 const APP_FILES = { guest: "guest.html", staff: "staff.html", kitchen: "kitchen.html", admin: "admin.html", saas: "platform.html" };
 const APP_HOME = () => ({ guest: S.session.joined ? "#/guest/menu" : "#/guest/join", staff: "#/staff/tables", kitchen: "#/kitchen/board", admin: "#/admin/dash", saas: "#/saas/overview" })[APP];
 const go = h => {
   const role = h.replace(/^#\/?/, "").split("/")[0];
-  if (APP !== "all" && role !== APP) { if (APP_FILES[role]) location.href = APP_FILES[role] + h; return; }
-  if (location.hash === h) render(true); else location.hash = h;
+  if (APP !== "all" && role !== APP) { if (APP_FILES[role]) { try { location.href = APP_FILES[role] + h; } catch (e) {} } return; }
+  setHash(h); ui.sheet = null; render(true);
 };
-window.addEventListener("hashchange", () => { ui.sheet = null; render(true); });
+window.addEventListener("hashchange", () => { let h = ""; try { h = location.hash; } catch (e) {} if (h === curHash) return; curHash = h; ui.sheet = null; render(true); });
 
 /* [LAUNCHER omitted from this page] */
 /* [GUEST APP omitted from this page] */
@@ -1027,7 +1036,7 @@ function sheetHTML() {
    ============================================================ */
 function view() {
   const r = route();
-  if (APP !== "all" && r.role !== APP) { history.replaceState(null, "", APP_HOME()); return view(); }
+  if (APP !== "all" && r.role !== APP) { setHash(APP_HOME(), true); return view(); }
   document.title = "RESTO · " + ({ guest: L("Ospite", "Guest", "Misafir"), staff: L("Sala", "Floor", "Salon"), kitchen: "KDS", admin: "Palatino", saas: "Platform" }[r.role] || "Palatino");
   if (r.role === "guest") {
     const v = r.view || "home";
@@ -1036,17 +1045,17 @@ function view() {
     return ({ join: gJoin, home: gHome, menu: gMenu, dish: () => gDish(r.arg), cart: gCart, sent: () => gSent(r.arg), status: gStatus, bill: gBill, feedback: gClosed, book: gBook, booked: () => gBooked(r.arg) }[v] || gHome)();
   }
   if (r.role === "staff") {
-    if (!me() || !ALLOW.staff.includes(me().role)) { ui.after = location.hash; return vPinLogin("staff"); }
+    if (!me() || !ALLOW.staff.includes(me().role)) { ui.after = curHash; return vPinLogin("staff"); }
     return ({ tables: sTables, table: () => sTable(r.arg), order: () => sOrder(r.arg), requests: sRequests, ready: sReady, res: sRes }[r.view] || sTables)();
   }
-  if (r.role === "kitchen") { if (!me() || !ALLOW.kitchen.includes(me().role)) { ui.after = location.hash; return vPinLogin("kitchen"); } return vKitchen(); }
+  if (r.role === "kitchen") { if (!me() || !ALLOW.kitchen.includes(me().role)) { ui.after = curHash; return vPinLogin("kitchen"); } return vKitchen(); }
   if (r.role === "admin" && ["login", "forgot", "reset"].includes(r.view)) return { login: aLogin, forgot: aForgot, reset: aReset }[r.view]();
-  if (r.role === "admin" && !ui.auth.admin) { ui.after = location.hash; return aLogin(); }
-  if (r.role === "saas" && !ui.auth.saas) { ui.after = location.hash; return pLogin(); }
+  if (r.role === "admin" && !ui.auth.admin) { ui.after = curHash; return aLogin(); }
+  if (r.role === "saas" && !ui.auth.saas) { ui.after = curHash; return pLogin(); }
   if (r.role === "admin") return ({ dash: aDash, menu: aMenu, tables: aTables, res: aRes, staff: aStaff, reports: aReports, settings: aSettings }[r.view] || aDash)();
   if (r.role === "saas") return ({ overview: pOverview, tenants: pTenants, tenant: () => pTenant(r.arg), onboard: pOnboard, plans: pPlans, health: pHealth }[r.view] || pOverview)();
   if (r.role === "apps") return vLauncher();
-  history.replaceState(null, "", S.session.joined ? "#/guest/menu" : "#/guest/join");
+  setHash(S.session.joined ? "#/guest/menu" : "#/guest/join", true);
   return view();
 }
 let lastRoute = "";
@@ -1058,7 +1067,7 @@ function render(nav) {
   const y = window.scrollY;
   document.documentElement.lang = ui.lang;
   $("#app").innerHTML = view() + sheetHTML() + (ui.toast ? `<div class="toast" role="status">${ic("check_circle")}${esc(ui.toast)}</div>` : "");
-  const rk = location.hash;
+  const rk = curHash;
   if (nav || rk !== lastRoute) window.scrollTo(0, 0); else window.scrollTo(0, y);
   lastRoute = rk;
   if (fid) { const el = document.getElementById(fid); if (el && !nav) { el.focus(); try { if (sel != null) el.setSelectionRange(sel, sel); } catch (e) {} } }
@@ -1281,12 +1290,12 @@ Object.assign(A, {
 function keepEd() { const d = ui.sheet.d; if (!$("#ed-name")) return; d.name = val("ed-name"); d.price = parseFloat(val("ed-price").replace(",", ".")) || 0; d.cat = val("ed-cat"); d.st = val("ed-st"); d.d = [val("ed-d0"), val("ed-d1"), val("ed-d2")]; }
 
 document.addEventListener("click", e => {
-  const el = e.target.closest("[data-a],[data-go]");
+  const el = e.target.closest("[data-a],[data-go],a[href^='#/']");
   if (!el) return;
   if (el.classList.contains("scrim") && e.target !== el) return; // click inside the sheet body
   e.preventDefault();
   if (el.dataset.a) { const f = A[el.dataset.a]; if (f) f(el.dataset.v); }
-  else go(el.dataset.go);
+  else go(el.dataset.go || el.getAttribute("href"));
 });
 document.addEventListener("input", e => {
   const k = e.target.dataset.in; if (!k) return;
