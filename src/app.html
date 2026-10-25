@@ -304,6 +304,13 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--raised);border:1p
 .logo img{width:100%;height:100%;object-fit:cover;border-radius:inherit;background:#fff}
 .thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 80%}
 .dish.hp{flex-wrap:wrap}
+.acc{border-bottom:1px solid var(--stone)}
+.acc-h{width:100%;display:flex;align-items:center;justify-content:space-between;min-height:60px;padding:8px 0;text-align:left}
+.acc-h .h1::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--terra);margin-right:10px;vertical-align:middle}
+.acc.open .acc-h{border-bottom:1px solid var(--stone-2)}
+.zoomb{position:relative;display:block;border-radius:var(--r)}
+.zoomb .zi{position:absolute;right:4px;bottom:4px;width:24px;height:24px;border-radius:12px;background:rgba(255,255,255,.92);color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:15px}
+.kcal{display:inline-flex;align-items:center;gap:6px;background:var(--sunk);border-radius:var(--r);padding:6px 10px;font-weight:600;font-size:.9rem}
 .seg{display:grid;grid-template-columns:1fr 1fr;background:var(--sunk);border-radius:var(--r);padding:3px;gap:3px}
 .seg button{min-height:40px;border-radius:var(--r-sm);font-weight:600;font-size:.88rem;color:var(--ink-2);display:flex;align-items:center;justify-content:center;gap:6px}
 .seg button.on{background:var(--raised);color:var(--ink);box-shadow:0 0 0 1px var(--stone)}
@@ -371,6 +378,7 @@ const iso = (off = 0) => { const d = new Date(); d.setDate(d.getDate() + off); r
 const dOf = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
 
 let ui = {
+  openCats: new Set(),
   lang: lsGet("resto.lang") || "tr",
   sheet: null, toast: null, offline: false,
   q: "", diet: { veg: false, gf: false },
@@ -509,6 +517,43 @@ const tagName = k => ui.lang === "it" ? TAG[k][0] : ui.lang === "en" ? TAG[k][1]
 /* courses: 0 = drinks (straight away), 1 = starters, 2 = mains & pizza, 3 = desserts */
 const COURSE = { anti: 1, primi: 2, secondi: 2, pizze: 2, dolci: 3, vini: 0, bevande: 0 };
 const courseName = c => [L("Bevande", "Drinks", "İçecekler"), L("1ª uscita · antipasti", "Course 1 · starters", "1. servis · başlangıçlar"), L("2ª uscita · principali", "Course 2 · mains", "2. servis · ana yemekler"), L("3ª uscita · dolci", "Course 3 · desserts", "3. servis · tatlılar")][c];
+
+/* approximate kcal per portion (wine: per 15 cl glass) and ingredients for dishes without an exploded view */
+const NUTRI = {
+  a1: { kcal: 380, ing: [["Girello di vitello", "Veal round", "Dana but"], ["Salsa tonnata", "Tuna sauce", "Ton balıklı sos"], ["Capperi", "Capers", "Kapari"]] },
+  a2: { kcal: 650, ing: [["Salumi del territorio", "Local cured meats", "Yöresel şarküteri"], ["Formaggi piemontesi", "Piedmont cheeses", "Piemonte peynirleri"], ["Pane della casa", "House bread", "Ev yapımı ekmek"]] },
+  a3: { kcal: 520, ing: [["Tomini", "Tomino cheese", "Tomino peyniri"], ["Salsa verde", "Green sauce", "Yeşil sos"], ["Salsa rossa", "Red sauce", "Kırmızı sos"], ["Peperoncino", "Chilli", "Acı biber"], ["Pinoli", "Pine nuts", "Çam fıstığı"], ["Insalata e pane tostato", "Salad & toasted bread", "Salata ve kızarmış ekmek"]] },
+  a5: { kcal: 480 },
+  a4: { kcal: 330, ing: [["Polpo", "Octopus", "Ahtapot"], ["Patate", "Potatoes", "Patates"], ["Prezzemolo", "Parsley", "Maydanoz"], ["Limone", "Lemon", "Limon"], ["Olio extravergine", "Extra virgin olive oil", "Sızma zeytinyağı"]] },
+  p1: { kcal: 620, ing: [["Agnolotti fatti a mano", "Hand-made agnolotti", "El yapımı agnolotti"], ["Ripieno di carne", "Meat filling", "Et dolgusu"], ["Sugo d'arrosto", "Roast jus", "Rosto suyu"], ["Parmigiano", "Parmesan", "Parmesan"]] },
+  p2: { kcal: 720, ing: [["Agnolotti fatti a mano", "Hand-made agnolotti", "El yapımı agnolotti"], ["Fonduta di Castelmagno DOP", "Castelmagno PDO fondue", "Castelmagno peyniri fondüsü"], ["Burro", "Butter", "Tereyağı"]] },
+  p3: { kcal: 560, ing: [["Spaghetti", "Spaghetti", "Spagetti"], ["Cozze", "Mussels", "Midye"], ["Vongole veraci", "Clams", "Akivades"], ["Aglio", "Garlic", "Sarımsak"], ["Prezzemolo", "Parsley", "Maydanoz"], ["Olio extravergine", "Extra virgin olive oil", "Sızma zeytinyağı"]] },
+  p4: { kcal: 820, ing: [["Paccheri", "Paccheri pasta", "Paccheri makarna"], ["Crema di gorgonzola", "Gorgonzola cream", "Gorgonzola kreması"], ["Salsiccia di Bra", "Bra sausage", "Bra sosisi"], ["Pepe nero", "Black pepper", "Karabiber"]] },
+  p5: { kcal: 590, ing: [["Polenta", "Polenta", "Polenta"], ["Ragù di carne", "Meat ragù", "Kıymalı et sosu"], ["Sedano e carote", "Celery & carrot", "Kereviz ve havuç"], ["Parmigiano", "Parmesan", "Parmesan"]] },
+  s1: { kcal: 650, ing: [["Tagli misti di manzo bollito", "Mixed boiled beef cuts", "Karışık haşlanmış dana"], ["Bagnetto verde", "Green sauce", "Yeşil sos"], ["Verdure del brodo", "Broth vegetables", "Haşlanmış sebzeler"]] },
+  s2: { kcal: 780, ing: [["Calamari", "Squid", "Kalamar"], ["Gamberi", "Prawns", "Karides"], ["Pesce", "Fish", "Balık"], ["Farina", "Flour", "Un"], ["Limone", "Lemon", "Limon"]] },
+  s3: { kcal: 680, ing: [["Manzo brasato", "Braised beef", "Kızartılıp pişirilmiş dana"], ["Barbera d'Asti", "Barbera wine", "Barbera şarabı"], ["Patate al rosmarino", "Rosemary potatoes", "Biberiyeli patates"], ["Sedano, carote, cipolla", "Celery, carrot, onion", "Kereviz, havuç, soğan"]] },
+  s4: { kcal: 520 },
+  s5: { kcal: 610 },
+  s6: { kcal: 850 },
+  s7: { kcal: 900 },
+  s8: { kcal: 560 },
+  z1: { kcal: 800, ing: [["Impasto per pizza", "Pizza dough", "Pizza hamuru"], ["Pomodoro", "Tomato", "Domates"], ["Fior di latte", "Fior di latte", "Fior di latte"], ["Basilico", "Basil", "Fesleğen"]] },
+  z2: { kcal: 950, ing: [["Impasto per pizza", "Pizza dough", "Pizza hamuru"], ["Pomodoro", "Tomato", "Domates"], ["Fior di latte", "Fior di latte", "Fior di latte"], ["Salame piccante", "Spicy salami", "Acı salam"]] },
+  z3: { kcal: 1000, ing: [["Impasto per pizza", "Pizza dough", "Pizza hamuru"], ["Fior di latte", "Fior di latte", "Fior di latte"], ["Salsiccia di Bra", "Bra sausage", "Bra sosisi"], ["Toma piemontese", "Piedmont toma", "Toma peyniri"]] },
+  z4: { kcal: 780, ing: [["Impasto per pizza", "Pizza dough", "Pizza hamuru"], ["Fior di latte", "Fior di latte", "Fior di latte"], ["Verdure grigliate di stagione", "Grilled seasonal vegetables", "Izgara mevsim sebzeleri"]] },
+  d1: { kcal: 380, ing: [["Cacao", "Cocoa", "Kakao"], ["Amaretti", "Amaretti biscuits", "Amaretti bisküvisi"], ["Uova e latte", "Eggs & milk", "Yumurta ve süt"], ["Caramello", "Caramel", "Karamel"]] },
+  d2: { kcal: 350, ing: [["Panna", "Cream", "Krema"], ["Zucchero", "Sugar", "Şeker"], ["Caramello o frutti di bosco", "Caramel or berries", "Karamel veya orman meyveleri"]] },
+  d3: { kcal: 420, ing: [["Tuorli", "Egg yolks", "Yumurta sarısı"], ["Moscato", "Moscato wine", "Moscato şarabı"], ["Zucchero", "Sugar", "Şeker"], ["Paste di meliga", "Meliga biscuits", "Meliga bisküvisi"]] },
+  v1: { kcal: 125, ing: [["Uve Barbera", "Barbera grapes", "Barbera üzümü"], ["Solfiti", "Sulphites", "Sülfit"]] },
+  v2: { kcal: 125, ing: [["Uve Nebbiolo", "Nebbiolo grapes", "Nebbiolo üzümü"], ["Solfiti", "Sulphites", "Sülfit"]] },
+  v3: { kcal: 120, ing: [["Uve Dolcetto", "Dolcetto grapes", "Dolcetto üzümü"], ["Solfiti", "Sulphites", "Sülfit"]] },
+  b1: { kcal: 0, ing: [["Acqua minerale", "Mineral water", "Maden suyu"]] },
+  b2: { kcal: 150, ing: [["Malto d'orzo", "Barley malt", "Arpa maltı"], ["Luppolo", "Hops", "Şerbetçiotu"]] },
+  b3: { kcal: 2, ing: [["Caffè", "Coffee", "Kahve"]] }
+};
+const dishIng = d => d.ing || (NUTRI[d.id] && NUTRI[d.id].ing) || null;
+const dishKcal = d => d.kcal != null ? d.kcal : NUTRI[d.id] ? NUTRI[d.id].kcal : null;
 
 /* ---------------- seed store ---------------- */
 function seed() {
@@ -802,10 +847,9 @@ function dishMatches(d) {
 function gMenu() {
   const cats = CATS.map(c => [c, S.menu.filter(d => d.cat === c[0] && dishMatches(d))]).filter(x => x[1].length);
   const qtyOf = id => S.session.draft.filter(i => i.dishId === id).reduce((a, i) => a + i.qty, 0);
-  const posters = S.menu.filter(d => d.poster && d.avail);
+  const filtering = !!(ui.q.trim() || ui.diet.veg || ui.diet.gf);
+  const isOpen = k => filtering || ui.openCats.has(k);
   const body = `
-    ${posters.length && !ui.q ? `<div class="row between"><div class="h2">${L("Consigliati dallo chef", "Chef's picks", "Şefin önerileri")}</div><span class="label">${posters.length}</span></div>
-    <div class="posters mt8" style="margin-bottom:20px">${posters.map(d => `<button class="poster" data-go="#/guest/dish/${d.id}" aria-label="${esc(d.name)} ${eur(d.price)}"><img src="${asset(d.poster)}" alt="${esc(d.name)}" loading="lazy" onerror="this.closest('.poster').remove()"><span class="pcap"><span class="t-sm ellip">${esc(d.name)}</span><span class="price">${eur(d.price)}</span></span></button>`).join("")}</div>` : ""}
     <div class="field"><div style="position:relative"><span style="position:absolute;left:12px;top:12px;color:var(--muted);display:flex">${ic("search")}</span><input id="q" class="input" style="padding-left:40px" placeholder="${L("Cerca piatti, ingredienti, vini…", "Search dishes, ingredients, wines…", "Yemek, malzeme, şarap ara…")}" value="${esc(ui.q)}" data-in="q"></div></div>
     <div class="chips mt12">
       <button class="chip ${ui.diet.veg ? "on" : ""}" data-a="diet" data-v="veg">${ic("eco")}${tagName("veg")}</button>
@@ -813,18 +857,18 @@ function gMenu() {
       ${CATS.map(c => `<button class="chip" data-a="jump" data-v="${c[0]}">${c[1]()}</button>`).join("")}
     </div>
     ${ui.diet.gf ? `<div class="card terra mt12 body-md" style="color:var(--terra-ink)">${ic("info")} ${L("Le pizze sono disponibili con impasto senza glutine. Segnala sempre la celiachia nelle note.", "Pizzas are available with gluten-free dough. Always flag coeliac needs in the notes.", "Pizzalar glutensiz hamurla yapılabilir. Çölyak durumunu her zaman nota yazın.")}</div>` : ""}
-    ${cats.length ? cats.map(([c, ds]) => `<section id="cat-${c[0]}"><div class="sec-title"><div class="h1">${c[1]()}</div><span class="label">${ds.length}</span></div>
-      <div class="list">${ds.map(d => { const q = qtyOf(d.id); return `<div class="dish ${d.poster ? "hp" : ""}">${d.poster ? `<button class="pimg" data-go="#/guest/dish/${d.id}" aria-label="${esc(d.name)}"><img src="${asset(d.poster)}" alt="${esc(d.name)}" loading="lazy" onerror="this.closest('.pimg').remove()"></button>` : ""}
+    ${cats.length ? cats.map(([c, ds]) => `<section id="cat-${c[0]}" class="acc ${isOpen(c[0]) ? "open" : ""}"><button class="acc-h" data-a="cat" data-v="${c[0]}" aria-expanded="${isOpen(c[0])}"><span class="h1">${c[1]()}</span><span class="row" style="gap:6px"><span class="label">${ds.length}</span>${ic(isOpen(c[0]) ? "expand_less" : "expand_more")}</span></button>
+      ${isOpen(c[0]) ? `<div class="list">${ds.map(d => { const q = qtyOf(d.id); return `<div class="dish">
         <button class="grow" style="text-align:left" data-go="#/guest/dish/${d.id}">
           <div class="row wrap" style="gap:4px;margin-bottom:4px">${d.avail ? d.tags.slice(0, 2).map(t => `<span class="tag ${t === "tradizione" || t === "casa" ? "terra" : "stone"}">${tagName(t)}</span>`).join("") : `<span class="tag err">${L("Esaurito", "Sold out", "Tükendi")}</span>`}</div>
           <div class="nm">${esc(d.name)}</div><div class="ds">${esc(d.d[ui.lang === "it" ? 0 : ui.lang === "en" ? 1 : 2])}</div>
           <div class="price mt8">${d.opt === "vino" ? wineP(d) : eur(d.price)}${d.opt === "imp" ? ` <span class="muted" style="font-weight:500;font-size:.78rem">${L("da", "from", "başlayan")}</span>` : ""}</div>
         </button>
-        <div class="col" style="align-items:flex-end;justify-content:${d.poster ? "flex-end" : "space-between"}">${d.poster ? (d.explode ? `<button class="chip" style="min-height:32px;font-size:.78rem" data-a="openX" data-v="${d.id}">${ic("layers")}${L("Ingredienti", "Ingredients", "İçindekiler")}</button>` : "") : thumb(d)}
+        <div class="col" style="align-items:flex-end;justify-content:space-between"><button class="zoomb" data-a="zoom" data-v="${d.id}" aria-label="${esc(d.name)} · ${L("ingredienti e calorie", "ingredients and calories", "içindekiler ve kalori")}">${thumb(d)}<span class="zi">${ic("zoom_in")}</span></button>
           ${!d.avail ? `<button class="btn secondary sm" data-go="#/guest/dish/${d.id}">${L("Alternative", "Alternatives", "Alternatifler")}</button>` :
             q ? `<div class="stepper"><button data-a="qmenu" data-v="${d.id}|-1" aria-label="-">${ic("remove")}</button><span class="tnum">${q}</span><button data-a="qmenu" data-v="${d.id}|1" aria-label="+">${ic("add")}</button></div>` :
             `<button class="btn primary sm" data-a="quick" data-v="${d.id}">${ic("add")}${L("Aggiungi", "Add", "Ekle")}</button>`}
-        </div></div>`; }).join("")}</div></section>`).join("")
+        </div></div>`; }).join("")}</div>` : ""}</section>`).join("")
     : `<div class="card center mt24" style="padding:32px 16px">${ic("search_off")}<div class="t-lg mt8">${L("Nessun piatto trovato", "No dishes found", "Yemek bulunamadı")}</div><p class="body-md mt8">${L("Prova un'altra parola o rimuovi i filtri.", "Try another word or clear the filters.", "Başka bir kelime deneyin veya filtreleri kaldırın.")}</p><button class="btn secondary mt16" data-a="clearf">${L("Rimuovi filtri", "Clear filters", "Filtreleri temizle")}</button></div>`}
     <div class="card flat mt24 row" style="align-items:flex-start">${ic("allergy")}<div class="body-md">${L("Allergeni secondo Reg. UE 1169/2011 indicati in ogni scheda piatto. Chiedi al personale per informazioni.", "Allergens per EU Reg. 1169/2011 shown on each dish page. Ask staff for details.", "Alerjenler AB 1169/2011'e göre her yemek sayfasında belirtilmiştir. Ayrıntı için personele sorun.")}</div></div>`;
   const bar = draftQty() ? `<button class="cartbar" data-go="#/guest/cart"><span class="ic" style="position:relative">${ic("receipt_long")}<span class="badge" style="border-color:var(--bosco)">${draftQty()}</span></span><div class="grow"><div class="t-sm">${draftQty()} ${L("piatti da inviare", "items to send", "gönderilecek ürün")}</div><div style="font-size:.75rem;color:#A9BDB9">${L("Tavolo", "Table", "Masa")} ${S.session.table}</div></div><div class="price">${eur(draftSum())}</div>${ic("chevron_right")}</button>` : "";
@@ -853,7 +897,8 @@ function gDish(id) {
     <div class="h-display mt8" style="font-size:1.8rem">${esc(d.name)}</div>
     <div class="row mt8"><span class="price" style="font-size:1.15rem;color:var(--terra-ink)">${eur(d.price)}</span><span class="body-md">${L("IVA inclusa · coperto a parte", "VAT incl. · cover extra", "KDV dahil · kuver ayrıca")}</span></div>
     <p class="serif mt12" style="font-size:1.1rem;font-style:italic;color:var(--ink-2)">“${esc(d.d[li])}”</p>
-    ${d.ing && d.ing.length ? `<div class="label mt24">${L("Nel piatto", "On the plate", "Tabakta neler var")}</div><ul class="ing mt8">${d.ing.map(x => `<li><span>${esc(x[0])}${ui.lang !== "it" ? `<small>${esc(ui.lang === "en" ? x[1] : x[2])}</small>` : ""}</span></li>`).join("")}</ul>${d.explode && ui.dview !== "x" ? `<button class="link mt8" style="display:inline-flex;gap:4px;align-items:center" data-a="dview" data-v="x">${ic("layers")}${L("Guarda gli ingredienti in esploso", "See the exploded view", "Malzemeleri katman katman gör")}</button>` : ""}` : ""}
+    ${dishKcal(d) != null ? `<div class="kcal mt12">${ic("local_fire_department")}≈ ${dishKcal(d)} kcal <span class="body-md" style="font-weight:500">· ${d.cat === "vini" ? L("a calice, stima", "per glass, estimate", "kadeh başı, tahmini") : L("a porzione, stima", "per portion, estimate", "porsiyon başı, tahmini")}</span></div>` : ""}
+    ${dishIng(d) ? `<div class="label mt24">${L("Nel piatto", "On the plate", "Tabakta neler var")}</div><ul class="ing mt8">${dishIng(d).map(x => `<li><span>${esc(x[0])}${ui.lang !== "it" ? `<small>${esc(ui.lang === "en" ? x[1] : x[2])}</small>` : ""}</span></li>`).join("")}</ul>${d.explode && ui.dview !== "x" ? `<button class="link mt8" style="display:inline-flex;gap:4px;align-items:center" data-a="dview" data-v="x">${ic("layers")}${L("Guarda gli ingredienti in esploso", "See the exploded view", "Malzemeleri katman katman gör")}</button>` : ""}` : ""}
     <div class="label mt24">${L("Allergeni (Reg. UE 1169/11)", "Allergens (EU 1169/11)", "Alerjenler (AB 1169/11)")}</div>
     <div class="row wrap mt8" style="gap:6px">${d.alg.length ? d.alg.map(a => `<span class="chip" style="min-height:30px;font-size:.8rem">${esc(algName(a))}</span>`).join("") : `<span class="body-md">${L("Nessuno dichiarato", "None declared", "Belirtilmiş alerjen yok")}</span>`}</div>${d.algTbd ? `<div class="body-md mt8" style="color:var(--terra-ink)">${ic("info")} ${L("Allergeni da confermare con la cucina: chiedi al personale.", "Allergens to be confirmed by the kitchen — ask the staff.", "Alerjen bilgisi mutfakla doğrulanacak; lütfen personele sorun.")}</div>` : ""}
     ${d.opt ? `<div class="card mt24"><div class="label">${d.opt === "porz" ? L("Porzione", "Portion", "Porsiyon") : d.opt === "vino" ? L("Calice o bottiglia", "Glass or bottle", "Kadeh mi şişe mi") : L("Impasto", "Dough", "Hamur")}</div><div class="col mt12">${OPTS[d.opt].map(o => `<button class="radio ${ui.dopt === o[0] ? "on" : ""}" data-a="dopt" data-v="${o[0]}"><span class="rb"></span><span class="grow">${optLabel(d, o[0])}</span><span class="body-md">${o[2] ? "+" + eur(o[2]) : L("Incluso", "Included", "Dahil")}</span></button>`).join("")}</div></div>` : ""}
@@ -1566,6 +1611,14 @@ function sheetHTML() {
   if (s.k === "allday") { const agg = {}; S.orders.forEach(o => { if (!o.closed) o.items.forEach(i => { if ((ui.kSt === "all" || i.st === ui.kSt) && !i.held && (i.status === "new" || i.status === "cooking")) agg[i.dishId + "|" + (i.opt || "")] = (agg[i.dishId + "|" + (i.opt || "")] || 0) + i.qty; }); });
     const rows = Object.entries(agg).sort((a, b) => b[1] - a[1]);
     c = `<div class="h2">${L("Totali da preparare", "All-day counts", "Hazırlanacak toplamlar")} · ${stName(ui.kSt)}</div><p class="body-md mt8">${L("Somma dei piatti aperti su tutte le comande: utile per preparare in serie.", "Open dishes summed across all tickets, for batch prep.", "Tüm fişlerdeki açık ürünlerin toplamı; toplu hazırlık için.")}</p><div class="list mt12">${rows.map(([k, n]) => { const [id, op] = k.split("|"); const d = dish(id); return `<div class="row between" style="padding:10px 0"><span class="t-sm">${esc(d.name)}${op && d.opt && OPTS[d.opt][0][0] !== op ? ` <span class="tag terra">${optLabel(d, op)}</span>` : ""}</span><span class="h2 tnum">${n}</span></div>`; }).join("") || `<div class="body-md" style="padding:10px 0">${L("Niente in coda", "Nothing queued", "Bekleyen yok")}</div>`}</div>`; }
+  if (s.k === "zoom") { const d = dish(s.v); const li = ui.lang === "it" ? 0 : ui.lang === "en" ? 1 : 2; const ing = dishIng(d), kc = dishKcal(d); const src = s.x && d.explode ? d.explode : (d.poster || d.img);
+    c = `${src ? `<img src="${asset(src)}" alt="${esc(d.name)}" style="width:100%;border-radius:8px;display:block;max-height:62dvh;object-fit:contain;background:#1a120c">` : thumb(d, "lg")}
+      ${d.explode ? `<div class="seg mt8">${[[false, "restaurant", L("Il piatto", "The dish", "Tabak")], [true, "layers", L("Ingredienti", "Ingredients", "İçindekiler")]].map(([x, i, n]) => `<button class="${!!s.x === x ? "on" : ""}" data-a="zoomX">${ic(i)}${n}</button>`).join("")}</div>` : ""}
+      <div class="row between mt16" style="align-items:flex-start"><div><div class="h2">${esc(d.name)}</div><div class="body-md">${esc(d.d[li])}</div></div><div class="price" style="white-space:nowrap">${d.opt === "vino" ? eur(d.price) + "<br><span class=\"body-md\">" + L("bott.", "bottle", "şişe") + " " + eur(d.bottle) + "</span>" : eur(d.price)}</div></div>
+      ${kc != null ? `<div class="kcal mt12">${ic("local_fire_department")}≈ ${kc} kcal <span class="body-md" style="font-weight:500">· ${d.cat === "vini" ? L("a calice, stima", "per glass, estimate", "kadeh başı, tahmini") : L("a porzione, stima", "per portion, estimate", "porsiyon başı, tahmini")}</span></div>` : ""}
+      ${ing ? `<div class="label mt16">${L("Ingredienti", "Ingredients", "İçindekiler")}</div><ul class="ing mt8">${ing.map(x => `<li><span>${esc(x[0])}${ui.lang !== "it" ? `<small>${esc(ui.lang === "en" ? x[1] : x[2])}</small>` : ""}</span></li>`).join("")}</ul>` : ""}
+      ${d.alg.length ? `<div class="body-md mt12">${ic("allergy")} ${d.alg.map(algName).join(", ")}${d.algTbd ? " · " + L("da confermare", "to be confirmed", "doğrulanacak") : ""}</div>` : ""}
+      <div class="grid2 mt16"><button class="btn secondary" data-go="#/guest/dish/${d.id}">${L("Dettagli", "Details", "Ayrıntılar")}</button>${d.avail ? `<button class="btn primary" data-a="zoomAdd" data-v="${d.id}">${ic("add")}${L("Aggiungi", "Add", "Ekle")}</button>` : `<span class="tag err" style="align-self:center;justify-self:center">${L("Esaurito", "Sold out", "Tükendi")}</span>`}</div>`; }
   if (s.k === "poster") { const d = dish(s.v); c = `<img src="${asset(d.poster)}" alt="${esc(d.name)}" style="width:100%;border-radius:8px;display:block"><button class="btn primary block mt16" data-a="closeSheet">${L("Chiudi", "Close", "Kapat")}</button>`; }
   if (s.k === "addStaff") c = `<div class="h2">${L("Nuova persona", "New person", "Yeni kişi")}</div><div class="field mt12"><label for="sn">${L("Nome", "Name", "Ad")}</label><input id="sn" class="input"></div><div class="field mt12"><label for="sr">${L("Ruolo", "Role", "Rol")}</label><select id="sr" class="input">${["waiter", "maitre", "chef", "pizza"].map(r => `<option value="${r}">${roleName(r)}</option>`).join("")}</select></div><button class="btn primary block mt16" data-a="addStaffOk">${L("Aggiungi", "Add", "Ekle")}</button>`;
   if (s.k === "kDrawer") c = `<div class="h2">${L("Disponibilità piatti", "Dish availability", "Ürün durumu")}</div><p class="body-md mt8">${L("Un piatto esaurito sparisce dagli ordini degli ospiti con proposte alternative.", "A sold-out dish shows alternatives to guests instead.", "Tükenen ürün yerine misafirlere alternatifler gösterilir.")}</p><div class="list mt12">${S.menu.filter(d => d.st !== "bar").map(d => `<div class="row between" style="padding:10px 0"><span class="t-sm">${esc(d.name)}</span><button class="switch ${d.avail ? "on" : ""}" data-a="avail" data-v="${d.id}"></button></div>`).join("")}</div>`;
@@ -1653,7 +1706,7 @@ const A = {
   copy: v => { try { navigator.clipboard.writeText(v); } catch (e) {} toast(L("Copiato", "Copied", "Kopyalandı")); },
   diet: v => { ui.diet[v] = !ui.diet[v]; render(); },
   clearf: () => { ui.q = ""; ui.diet = { veg: false, gf: false }; render(); },
-  jump: v => { const e = document.getElementById("cat-" + v); if (e) window.scrollTo({ top: e.getBoundingClientRect().top + window.scrollY - 130, behavior: "smooth" }); },
+  jump: v => { if (!ui.openCats.has(v)) { ui.openCats.add(v); render(); } const e = document.getElementById("cat-" + v); if (e) window.scrollTo({ top: e.getBoundingClientRect().top + window.scrollY - 130, behavior: "smooth" }); },
   quick: v => { if (!S.session.joined) return go("#/guest/join"); addDraft(v); toast(dish(v).name + " · " + L("aggiunto", "added", "eklendi")); },
   qmenu: v => { const [id, d] = v.split("|"); if (+d > 0) addDraft(id); else { const its = S.session.draft.filter(i => i.dishId === id); const last = its[its.length - 1]; if (last) { last.qty--; if (!last.qty) S.session.draft = S.session.draft.filter(i => i !== last); } save(); } render(); },
   dq: v => { ui.dq = Math.max(1, Math.min(20, ui.dq + +v)); render(); },
@@ -1805,6 +1858,10 @@ Object.assign(A, {
   fire: v => { const [t, c] = v.split("|"); tOrders(t).forEach(o => o.items.forEach(i => { if (i.held && i.course === +c) { i.held = false; i.firedAt = now(); } })); save(); toast(courseName(+c) + " · " + L("marcia!", "fired!", "başlatıldı")); },
   /* brand, floor plan, tablet */
   poster: v => { ui.sheet = { k: "poster", v }; render(); },
+  cat: v => { ui.openCats.has(v) ? ui.openCats.delete(v) : ui.openCats.add(v); render(); },
+  zoom: v => { ui.sheet = { k: "zoom", v, x: false }; render(); },
+  zoomX: () => { ui.sheet.x = !ui.sheet.x; render(); },
+  zoomAdd: v => { const d = dish(v); ui.sheet = null; if (!S.session.joined) return go("#/guest/join"); addDraft(v); toast(d.name + " · " + L("aggiunto", "added", "eklendi")); },
   dview: v => { ui.dview = v; render(); const m = document.querySelector(".media"); if (m) m.scrollIntoView({ block: "nearest", behavior: "smooth" }); },
   openX: v => { ui.dviewNext = "x"; ui.dish = null; go("#/guest/dish/" + v); },
   edXDel: () => { keepEd(); delete ui.sheet.d.explode; render(); },

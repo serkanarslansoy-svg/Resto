@@ -15,7 +15,7 @@ const OUT = process.argv[3];
   // guest flow
   await mob.goto(F('#/guest/join')); await mob.fill('#jname', 'Ekin'); await mob.click('[data-a=join]'); await mob.waitForTimeout(200);
   await mob.goto(F('#/guest/dish/p1')); await mob.click('[data-a=dopt][data-v=abb]'); await mob.click('[data-a=dq][data-v="1"]'); await mob.fill('#dnote', 'senza parmigiano'); await mob.click('[data-a=addDish]'); await mob.waitForTimeout(200);
-  await mob.click('[data-a=quick][data-v=z2]'); await mob.waitForTimeout(100);
+  await mob.click('[data-a=jump][data-v=pizze]'); await mob.click('[data-a=quick][data-v=z2]'); await mob.waitForTimeout(100);
   await mob.screenshot({ path: OUT + '/g-menu.png' });
   await mob.goto(F('#/guest/cart')); await mob.waitForTimeout(100); await mob.screenshot({ path: OUT + '/g-cart.png', fullPage: true });
   await mob.click('[data-a=send]'); await mob.waitForTimeout(200);

@@ -14,7 +14,8 @@ const F = (h = '') => DIR + (PAGE[h.replace(/^#\/?/, '').split('/')[0]] || 'gues
   await g.screenshot({ path: OUT + '/g6-join.png' });
   await g.click('[data-a=join]'); await g.waitForTimeout(400);
   if (!(await g.evaluate(() => location.hash)).startsWith('#/guest/menu')) errs.push('join does not open the menu');
-  const posters = await g.locator('.posters .poster img').evaluateAll(a => a.filter(i => i.complete && i.naturalWidth > 0).length); if (posters < 8) errs.push('posters loaded ' + posters);
+  for (const c of ['anti', 'primi', 'secondi', 'vini']) await g.click(`[data-a=cat][data-v=${c}]`); await g.waitForTimeout(600);
+  const posters = await g.locator('.dish .thumb img').evaluateAll(a => a.filter(i => i.complete && i.naturalWidth > 0).length); if (posters < 13) errs.push('thumb images loaded ' + posters);
   if (!(await g.locator('.gh .logo img').evaluate(i => i.naturalWidth > 0))) errs.push('logo not loaded');
   const fontOk = await g.evaluate(() => document.fonts.check('16px "Plus Jakarta Sans"') && document.fonts.check('20px Newsreader')); if (!fontOk) errs.push('fonts not loaded');
   await g.screenshot({ path: OUT + '/g6-menu.png' });

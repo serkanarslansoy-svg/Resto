@@ -22,7 +22,7 @@ const F = (h = '') => DIR + (PAGE[h.replace(/^#\/?/, '').split('/')[0]] || 'gues
   await k.screenshot({ path: OUT + '/kds-allday.png' }); await k.keyboard.press('Escape');
   // new ticket from guest in other tab -> fresh highlight in kitchen
   const g = await page(390, 844); await g.goto(F('#/guest/join')); await g.fill('#jname', 'Ekin'); await g.click('[data-a=join]'); await g.waitForTimeout(100);
-  await g.goto(F('#/guest/menu')); await g.click('[data-a=quick][data-v=z2]'); await g.click('[data-a=quick][data-v=a1]'); await g.goto(F('#/guest/cart')); await g.click('[data-a=send]'); await g.waitForTimeout(400);
+  await g.goto(F('#/guest/menu')); await g.click('[data-a=jump][data-v=pizze]'); await g.click('[data-a=quick][data-v=z2]'); await g.click('[data-a=jump][data-v=anti]'); await g.click('[data-a=quick][data-v=a1]'); await g.goto(F('#/guest/cart')); await g.click('[data-a=send]'); await g.waitForTimeout(400);
   const fresh = await k.locator('.tk.fresh').count(); if (fresh < 1) errs.push('no fresh highlight ' + fresh);
   await k.screenshot({ path: OUT + '/kds-fresh.png' });
   // staff acks a request -> response time

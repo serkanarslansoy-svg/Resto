@@ -70,7 +70,7 @@ const F = (h = '') => DIR + (PAGE[h.replace(/^#\/?/, '').split('/')[0]] || 'gues
   await d.goto(F('#/admin/login')); await d.waitForTimeout(150); await d.screenshot({ path: OUT + '/admin-login.png' });
   // guest bill split view
   await m.goto(F('#/guest/join')); await m.fill('#jname', 'Ekin'); await m.click('[data-a=join]'); await W();
-  await m.goto(F('#/guest/menu')); await m.click('[data-a=quick][data-v=z1]'); await m.goto(F('#/guest/cart')); await m.click('[data-a=send]'); await W();
+  await m.goto(F('#/guest/menu')); await m.click('[data-a=jump][data-v=pizze]'); await m.click('[data-a=quick][data-v=z1]'); await m.goto(F('#/guest/cart')); await m.click('[data-a=send]'); await W();
   await m.goto(F('#/guest/bill')); await W(); await m.click('[data-a=splitMode][data-v="D4|person"]'); await W(); await m.screenshot({ path: OUT + '/g-bill-split.png', fullPage: true });
   // lock & end shift
   await m.goto(F('#/staff/tables')); await W(); await m.click('[data-a=lock]'); await W(); if (!(await m.innerText('#app')).includes('PIN')) errs.push('lock');
