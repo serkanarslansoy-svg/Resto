@@ -429,7 +429,7 @@ const optLabel = (d, k) => { if (!d.opt) return ""; const o = OPTS[d.opt].find(x
 const optDelta = (d, k) => { if (!d.opt) return 0; const o = OPTS[d.opt].find(x => x[0] === k); return o ? o[2] : 0; };
 
 const SEED_MENU = [
-  { id: "a1", cat: "anti", st: "cucina", name: "Vitello tonnato", price: 13, alg: ["uova", "pesce", "sen"], tags: ["tradizione"],
+  { id: "a1", cat: "anti", st: "cucina", name: "Vitello tonnato", price: 13, alg: ["uova", "pesce", "sen"], tags: ["tradizione"], poster: "assets/posters/vitello-tonnato.jpg",
     d: ["Girello di vitello rosa, salsa tonnata e capperi.", "Pink veal round, tuna sauce and capers.", "Pembe dana, ton balıklı sos ve kapari."] },
   { id: "a2", cat: "anti", st: "cucina", name: "Tagliere di salumi e formaggi", price: 16, alg: ["lat", "glu"], tags: ["condividere"], poster: "assets/posters/tagliere.jpg",
     d: ["Salumi e formaggi del territorio con pane della casa.", "Local cured meats and cheeses with house bread.", "Yöresel şarküteri ve peynir tabağı, ev yapımı ekmekle."] },
@@ -441,12 +441,12 @@ const SEED_MENU = [
   { id: "a4", cat: "anti", st: "cucina", name: "Insalata di polpo e patate", price: 14, alg: ["mol"], tags: ["gf"], poster: "assets/posters/insalata-polpo.jpg",
     d: ["Polpo tenero, patate, prezzemolo e limone.", "Tender octopus, potatoes, parsley and lemon.", "Yumuşak ahtapot, patates, maydanoz ve limon."] },
   { id: "p1", cat: "primi", st: "cucina", name: "Agnolotti al sugo d'arrosto", price: 14, alg: ["glu", "uova", "lat", "sed"], tags: ["tradizione", "casa"], opt: "porz", poster: "assets/posters/agnolotti-arrosto.jpg",
-    d: ["Pasta ripiena fatta a mano, sugo d'arrosto ristretto.", "Hand-made filled pasta with roast jus.", "El yapımı dolgulu makarna, rosto suyu ile."] },
+    d: ["Agnolotti artigianali ripieni, con sugo d'arrosto.", "Hand-made filled pasta with roast jus.", "El yapımı dolgulu makarna, rosto suyu ile."] },
   { id: "p2", cat: "primi", st: "cucina", name: "Agnolotti al Castelmagno", price: 15, alg: ["glu", "uova", "lat"], tags: ["casa"], opt: "porz",
     d: ["Agnolotti con fonduta di Castelmagno DOP.", "Agnolotti with Castelmagno PDO cheese fondue.", "Castelmagno peyniri fondüsü ile agnolotti."] },
   { id: "p3", cat: "primi", st: "cucina", name: "Spaghetti cozze e vongole", price: 16, alg: ["glu", "mol"], tags: [], opt: "porz", poster: "assets/posters/spaghetti-cozze-vongole.jpg",
     d: ["Cozze, vongole veraci, aglio e prezzemolo.", "Mussels, clams, garlic and parsley.", "Midye, akivades, sarımsak ve maydanoz."] },
-  { id: "p4", cat: "primi", st: "cucina", name: "Paccheri gorgonzola e salsiccia", price: 14, alg: ["glu", "lat"], tags: [], opt: "porz",
+  { id: "p4", cat: "primi", st: "cucina", name: "Paccheri gorgonzola e salsiccia", price: 14, alg: ["glu", "lat"], tags: [], opt: "porz", poster: "assets/posters/paccheri-gorgonzola.jpg",
     d: ["Crema di gorgonzola e salsiccia di Bra.", "Gorgonzola cream and Bra sausage.", "Gorgonzola kreması ve Bra sosisi."] },
   { id: "p5", cat: "primi", st: "cucina", name: "Polenta al ragù", price: 12, alg: ["sed", "lat"], tags: ["gf"],
     d: ["Polenta morbida con ragù di carne a lunga cottura.", "Soft polenta with slow-cooked meat ragù.", "Yumuşak polenta, uzun pişmiş et sosu ile."] },
