@@ -42,7 +42,7 @@ Girişler yalnızca demo amaçlıdır; doğrulama tarayıcıda yapılır.
 ## Klasörler
 
 - `index.html`: prototipin tamamı (tek dosya).
-- `assets/`: restoranın afişleri (`posters/`), afişlerden kırpılmış yemek fotoğrafları (`dishes/`) ve logo (`brand/`). `index.html` bu klasörle birlikte açılmalıdır; görsel bulunamazsa çizim kullanılır.
+- `assets/`: restoranın afişleri (`posters/`, menüde ve yemek sayfalarında olduğu gibi kullanılır) ve logo (`brand/`). `index.html` bu klasörle birlikte açılmalıdır; görsel bulunamazsa çizim kullanılır.
 - `docs/DESIGN-ivory.md`: fildişi tasarım sistemi (renk token'ları, kontrast notları, bileşen kuralları, Stitch istemi).
 - `docs/design-review.md`: Stitch projesinin tasarım incelemesi.
 - `design/stitch-export/`: Google Stitch'ten dışa aktarılan orijinal 12 ekran ve tasarım sistemi.
