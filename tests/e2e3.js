@@ -4,7 +4,7 @@ const F = 'file://' + process.argv[2], OUT = process.argv[3];
   const b = await chromium.launch(); const ctx = await b.newContext({ acceptDownloads: true }); const errs = [];
   const page = async (w, h) => { const p = await ctx.newPage(); await p.setViewportSize({ width: w, height: h }); p.on('pageerror', e => errs.push('pageerror ' + e.message)); p.on('console', m => { if (m.type() === 'error') errs.push('console ' + m.text()); }); return p; };
   const k = await page(1280, 800);
-  await k.goto(F + '#/'); await k.click('[data-a=reset]'); await k.waitForTimeout(200);
+  await k.goto(F + '#/apps'); await k.click('[data-a=reset]'); await k.waitForTimeout(200);
   await k.goto(F + '#/kitchen/board'); await k.waitForTimeout(150); await k.click('[data-a=pickStaff][data-v=s4]'); await k.keyboard.type('4444'); await k.waitForTimeout(300);
   await k.evaluate(() => { window.__beeps = 0; const ob = window.beep; });
   await k.click('[data-a=kSound]'); await k.waitForTimeout(100);

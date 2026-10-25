@@ -4,7 +4,7 @@ const F = 'file://' + process.argv[2], OUT = process.argv[3], IMG = process.argv
   const b = await chromium.launch(); const ctx = await b.newContext(); const errs = [];
   const page = async (w, h) => { const p = await ctx.newPage(); await p.setViewportSize({ width: w, height: h }); p.on('pageerror', e => errs.push('pageerror ' + e.message)); p.on('console', m => { if (m.type() === 'error') errs.push('console ' + m.text()); }); return p; };
   const d = await page(1360, 900);
-  await d.goto(F + '#/'); await d.click('[data-a=reset]'); await d.waitForTimeout(150);
+  await d.goto(F + '#/apps'); await d.click('[data-a=reset]'); await d.waitForTimeout(150);
   await d.goto(F + '#/admin/menu'); await d.click('[data-a=aFill]'); await d.click('[data-a=aLogin]'); await d.waitForTimeout(250);
   // dish photo
   await d.click('[data-a=editDish][data-v=p1]'); await d.waitForTimeout(100);
@@ -41,6 +41,7 @@ const F = 'file://' + process.argv[2], OUT = process.argv[3], IMG = process.argv
   // guest sees photo + logo + tagline
   const g = await page(390, 844); await g.goto(F + '#/guest/join'); await g.fill('#jname', 'Ekin'); await g.click('[data-a=join]'); await g.waitForTimeout(200);
   if (!(await g.locator('.gh .logo img').count())) errs.push('guest logo');
+  await g.goto(F + '#/guest/home'); await g.waitForTimeout(200);
   if (!(await g.locator('.hero .label').textContent()).toLowerCase().includes('cucina piemontese')) errs.push('tagline');
   await g.screenshot({ path: OUT + '/g-home-brand.png' });
   await g.goto(F + '#/guest/menu'); await g.click('[data-a=jump][data-v=primi]'); await g.waitForTimeout(400); if (!(await g.locator('.thumb img').count())) errs.push('menu photo');

@@ -7,7 +7,7 @@ const OUT = process.argv[3];
   const mob = await (async()=>{const p=await ctx.newPage(); await p.setViewportSize({ width: 390, height: 844 }); return p})();
   mob.on('pageerror', e => errs.push('pageerror ' + e.message));
   mob.on('console', m => { if (m.type() === 'error') errs.push('console ' + m.text()); });
-  await mob.goto(F + '#/'); await mob.waitForTimeout(800);
+  await mob.goto(F + '#/apps'); await mob.waitForTimeout(800);
   const routes = ['#/', '#/guest/join', '#/guest/menu', '#/guest/dish/p1', '#/guest/dish/s1', '#/guest/book', '#/staff/tables', '#/staff/table/D4', '#/staff/requests', '#/staff/ready', '#/staff/res', '#/kitchen/board', '#/admin/dash', '#/admin/menu', '#/admin/tables', '#/admin/res', '#/admin/staff', '#/admin/settings', '#/saas/overview', '#/saas/tenants', '#/saas/tenant/palatino', '#/saas/onboard', '#/saas/plans', '#/saas/health'];
   for (const r of routes) { await mob.goto(F + r); await mob.waitForTimeout(150); const len = (await mob.innerText('#app')).length; if (len < 50) errs.push('empty ' + r); }
   // guest flow
@@ -64,7 +64,7 @@ const OUT = process.argv[3];
   const pr = await d.evaluate(() => JSON.parse(localStorage.getItem('resto.palatino.v4')).menu.find(x => x.id === 'a1').price); if (pr !== 14.5) errs.push('price edit ' + pr);
   await d.screenshot({ path: OUT + '/a-menu.png' });
   await d.goto(F + '#/saas/overview'); await d.waitForTimeout(200); await d.click('[data-a=pFill]'); await d.click('[data-a=pLogin]'); await d.fill('#p2','246810'); await d.click('[data-a=pLogin]'); await d.waitForTimeout(300); await d.screenshot({ path: OUT + '/p-overview.png' });
-  await d.goto(F + '#/'); await d.waitForTimeout(200); await d.screenshot({ path: OUT + '/launcher.png', fullPage: true });
+  await d.goto(F + '#/apps'); await d.waitForTimeout(200); await d.screenshot({ path: OUT + '/launcher.png', fullPage: true });
   // lang
   await mob.goto(F + '#/guest/join'); await mob.click('[data-a=lang][data-v=it]'); await mob.waitForTimeout(100);
   const t = await mob.innerText('.stitle'); errs.push('INFO it title: ' + t);

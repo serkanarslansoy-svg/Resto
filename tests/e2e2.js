@@ -4,7 +4,7 @@ const F = 'file://' + process.argv[2], OUT = process.argv[3];
   const b = await chromium.launch(); const ctx = await b.newContext(); const errs = [];
   const page = async (w, h) => { const p = await ctx.newPage(); await p.setViewportSize({ width: w, height: h }); p.on('pageerror', e => errs.push('pageerror ' + e.message)); p.on('console', m => { if (m.type() === 'error') errs.push('console ' + m.text()); }); return p; };
   const m = await page(390, 844); const W = t => m.waitForTimeout(t || 120);
-  await m.goto(F + '#/'); await W(300);
+  await m.goto(F + '#/apps'); await W(300);
   // guards
   for (const r of ['#/staff/tables', '#/kitchen/board', '#/admin/dash', '#/saas/overview']) { await m.goto(F + r); await W(); const txt = await m.innerText('#app'); if (!/PIN|Giriş|Demo/.test(txt)) errs.push('no guard ' + r); }
   // staff login: wrong then right

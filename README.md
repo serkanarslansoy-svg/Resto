@@ -6,7 +6,20 @@ Restoranlar için QR ile masadan sipariş, salon, mutfak ekranı (KDS), restoran
 
 ## Çalıştırma
 
-`index.html` dosyasını tarayıcıda açın. Kurulum gerekmez. Yazı tipleri ve ikonlar Google Fonts üzerinden yüklenir.
+`index.html` dosyasını açın. Tek başına çalışır: yazı tipleri, ikonlar ve resimler dosyanın içine gömülüdür. İnternet ya da yanında `assets` klasörü gerekmez; telefonda dosya olarak da açılabilir.
+
+Açılışta yalnızca **müşteri** akışı görünür: masadaki QR okutulmuş gibi başlar, "Menüyü aç" ile menüye geçilir. Personel, mutfak ve yönetim uygulamalarına `index.html#/apps` adresinden ulaşılır.
+
+### Düzenleme ve derleme
+
+Kaynak dosya `src/app.html`. Değişiklikten sonra tek dosyalık sayfayı yeniden üretin:
+
+```bash
+pip install pillow
+python3 tools/build.py   # src/app.html + assets/ -> index.html
+```
+
+`index.html` elle düzenlenmez; derleme onu baştan yazar.
 
 GitHub Pages ile yayınlamak için: repo **Settings → Pages → Deploy from a branch → `main` / root**.
 
@@ -14,13 +27,13 @@ GitHub Pages ile yayınlamak için: repo **Settings → Pages → Deploy from a 
 
 | Uygulama | Adres | İçerik |
 |---|---|---|
-| Misafir (mobil) | `#/guest/join` | QR ile masaya katılma, menü, ortak sepet, sipariş durumu, garson/hesap isteği, hesap bölme, değerlendirme, rezervasyon |
+| Misafir (mobil, açılış) | `#/guest/join` | QR ile masaya katılma, menü, ortak sepet, sipariş durumu, garson/hesap isteği, hesap bölme, değerlendirme, rezervasyon |
 | Salon (mobil + tablet) | `#/staff/tables` | Masa haritası, tablette iki panelli kat planı, garsonun sipariş girmesi, servis sırası ("marcia"), çağrılar, ön hesap ve tahsilat |
 | Mutfak ekranı (KDS) | `#/kitchen/board` | İstasyona göre fişler, süre renkleri, sesli uyarı, aynı masa senkronu, toplamlar, tükenen ürünler |
 | Restoran yönetimi | `#/admin/dash` | Genel bakış, menü ve fotoğraflar, kat planı düzenleyici ve QR, rezervasyonlar, personel ve yetkiler, raporlar ve CSV, marka ayarları |
 | RESTO platformu | `#/saas/overview` | İşletmeler, kayıt sihirbazı, planlar ve faturalar, sistem durumu ve destek |
 
-Örnek akış: misafir olarak sipariş verin, mutfak ekranını başka bir sekmede açın; fiş anında düşer.
+Diğer uygulamaların listesi: `#/apps`. Örnek akış: misafir olarak sipariş verin, mutfak ekranını başka bir sekmede açın; fiş anında düşer.
 
 ## Demo girişleri
 
@@ -41,8 +54,10 @@ Girişler yalnızca demo amaçlıdır; doğrulama tarayıcıda yapılır.
 
 ## Klasörler
 
-- `index.html`: prototipin tamamı (tek dosya).
-- `assets/`: restoranın afişleri (`posters/`, menüde ve yemek sayfalarında olduğu gibi kullanılır), içindekilerin patlatılmış görselleri (`exploded/`, yemek sayfasında "Tabak / İçindekiler" geçişiyle) ve logo (`brand/`). `index.html` bu klasörle birlikte açılmalıdır; görsel bulunamazsa çizim kullanılır.
+- `index.html`: derlenmiş, tek başına çalışan prototip.
+- `src/app.html`: prototipin kaynağı.
+- `tools/build.py`: yazı tiplerini, ikonları ve resimleri gömerek `index.html` üretir.
+- `assets/`: restoranın afişleri (`posters/`, menüde ve yemek sayfalarında olduğu gibi kullanılır), içindekilerin patlatılmış görselleri (`exploded/`, yemek sayfasında "Tabak / İçindekiler" geçişiyle) logo (`brand/`), yazı tipleri (`fonts/`) ve Material Symbols ikonları (`icons/`). Derleme bunları `index.html` içine gömer.
 - `docs/DESIGN-ivory.md`: fildişi tasarım sistemi (renk token'ları, kontrast notları, bileşen kuralları, Stitch istemi).
 - `docs/design-review.md`: Stitch projesinin tasarım incelemesi.
 - `design/stitch-export/`: Google Stitch'ten dışa aktarılan orijinal 12 ekran ve tasarım sistemi.
@@ -57,6 +72,7 @@ node tests/e2e2.js "$PWD/index.html" /tmp/shots
 node tests/e2e3.js "$PWD/index.html" /tmp/shots
 node tests/e2e4.js "$PWD/index.html" /tmp/shots <png-klasörü>
 node tests/e2e5.js "$PWD/index.html" /tmp/shots
+node tests/e2e6.js "$PWD/index.html" /tmp/shots
 ```
 
 `e2e4.js` için klasörde `dish.png` ve `logo.png` bulunmalıdır. Her test sorunsuz geçince `OK` yazar.
