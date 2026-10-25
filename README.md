@@ -6,34 +6,41 @@ Restoranlar için QR ile masadan sipariş, salon, mutfak ekranı (KDS), restoran
 
 ## Çalıştırma
 
-`index.html` dosyasını açın. Tek başına çalışır: yazı tipleri, ikonlar ve resimler dosyanın içine gömülüdür. İnternet ya da yanında `assets` klasörü gerekmez; telefonda dosya olarak da açılabilir.
+Her kullanıcı tipinin **ayrı bir sayfası** var. Her sayfa yalnızca kendi ekranlarını içerir ve tek başına çalışır (yazı tipleri, ikonlar ve gereken resimler dosyanın içinde):
 
-Açılışta yalnızca **müşteri** akışı görünür: masadaki QR okutulmuş gibi başlar, "Menüyü aç" ile menüye geçilir. Personel, mutfak ve yönetim uygulamalarına `index.html#/apps` adresinden ulaşılır.
+| Sayfa | Kim açar |
+|---|---|
+| `guest.html` | Misafir. Masadaki QR bu sayfayı açar; menü, fiyatlar, sipariş, hesap, rezervasyon. Personel ekranlarının kodu bu dosyada yoktur. |
+| `staff.html` | Garson / salon. Misafirlerin verdiği siparişleri, çağrıları ve hesapları görür. |
+| `kitchen.html` | Mutfak ekranı. |
+| `admin.html` | Restoran yönetimi. |
+| `platform.html` | RESTO operatörleri. |
+| `index.html` | Demo için bağlantı sayfası (uygulama kodu içermez). |
+
+Sayfalar aynı siteden (örneğin GitHub Pages) ve aynı tarayıcıda açılınca demo verisini paylaşır: misafirin siparişi garson ve mutfak sayfalarına anında düşer. Gerçek sistemde bu bağlantıyı sunucu sağlayacaktır.
 
 ### Düzenleme ve derleme
 
-Kaynak dosya `src/app.html`. Değişiklikten sonra tek dosyalık sayfayı yeniden üretin:
+Kaynak tek dosya: `src/app.html`. Değişiklikten sonra sayfaları yeniden üretin:
 
 ```bash
 pip install pillow
-python3 tools/build.py   # src/app.html + assets/ -> index.html
+python3 tools/build.py   # src/app.html + assets/ -> guest.html, staff.html, kitchen.html, admin.html, platform.html, index.html
 ```
 
-`index.html` elle düzenlenmez; derleme onu baştan yazar.
-
-GitHub Pages ile yayınlamak için: repo **Settings → Pages → Deploy from a branch → `main` / root**.
+Derleme, her sayfaya yalnızca o kullanıcının bölümlerini koyar; üretilen dosyalar elle düzenlenmez.
 
 ## Uygulamalar
 
-| Uygulama | Adres | İçerik |
+| Uygulama | Sayfa | İçerik |
 |---|---|---|
-| Misafir (mobil, açılış) | `#/guest/join` | QR ile masaya katılma, menü, ortak sepet, sipariş durumu, garson/hesap isteği, hesap bölme, değerlendirme, rezervasyon |
-| Salon (mobil + tablet) | `#/staff/tables` | Masa haritası, tablette iki panelli kat planı, garsonun sipariş girmesi, servis sırası ("marcia"), çağrılar, ön hesap ve tahsilat |
-| Mutfak ekranı (KDS) | `#/kitchen/board` | İstasyona göre fişler, süre renkleri, sesli uyarı, aynı masa senkronu, toplamlar, tükenen ürünler |
-| Restoran yönetimi | `#/admin/dash` | Genel bakış, menü ve fotoğraflar, kat planı düzenleyici ve QR, rezervasyonlar, personel ve yetkiler, raporlar ve CSV, marka ayarları |
-| RESTO platformu | `#/saas/overview` | İşletmeler, kayıt sihirbazı, planlar ve faturalar, sistem durumu ve destek |
+| Misafir (mobil) | `guest.html` | QR ile masaya katılma, menü, ortak sepet, sipariş durumu, garson/hesap isteği, hesap bölme, değerlendirme, rezervasyon |
+| Salon (mobil + tablet) | `staff.html` | Masa haritası, tablette iki panelli kat planı, garsonun sipariş girmesi, servis sırası ("marcia"), çağrılar, ön hesap ve tahsilat |
+| Mutfak ekranı (KDS) | `kitchen.html` | İstasyona göre fişler, süre renkleri, sesli uyarı, aynı masa senkronu, toplamlar, tükenen ürünler |
+| Restoran yönetimi | `admin.html` | Genel bakış, menü ve fotoğraflar, kat planı düzenleyici ve QR, rezervasyonlar, personel ve yetkiler, raporlar ve CSV, marka ayarları |
+| RESTO platformu | `platform.html` | İşletmeler, kayıt sihirbazı, planlar ve faturalar, sistem durumu ve destek |
 
-Diğer uygulamaların listesi: `#/apps`. Örnek akış: misafir olarak sipariş verin, mutfak ekranını başka bir sekmede açın; fiş anında düşer.
+Örnek akış: `guest.html` ile sipariş verin, `kitchen.html` ve `staff.html` sayfalarını başka sekmelerde açın; fiş anında düşer.
 
 ## Demo girişleri
 
@@ -54,10 +61,11 @@ Girişler yalnızca demo amaçlıdır; doğrulama tarayıcıda yapılır.
 
 ## Klasörler
 
-- `index.html`: derlenmiş, tek başına çalışan prototip.
-- `src/app.html`: prototipin kaynağı.
-- `tools/build.py`: yazı tiplerini, ikonları ve resimleri gömerek `index.html` üretir.
-- `assets/`: restoranın afişleri (`posters/`, menüde ve yemek sayfalarında olduğu gibi kullanılır), içindekilerin patlatılmış görselleri (`exploded/`, yemek sayfasında "Tabak / İçindekiler" geçişiyle) logo (`brand/`), yazı tipleri (`fonts/`) ve Material Symbols ikonları (`icons/`). Derleme bunları `index.html` içine gömer.
+- `guest.html`, `staff.html`, `kitchen.html`, `admin.html`, `platform.html`: derlenmiş, tek başına çalışan kullanıcı sayfaları.
+- `index.html`: demo bağlantı sayfası.
+- `src/app.html`: tüm uygulamaların kaynağı.
+- `tools/build.py`: kaynaktan kullanıcı sayfalarını üretir.
+- `assets/`: restoranın afişleri (`posters/`, menüde ve yemek sayfalarında olduğu gibi kullanılır), içindekilerin patlatılmış görselleri (`exploded/`, yemek sayfasında "Tabak / İçindekiler" geçişiyle) logo (`brand/`), yazı tipleri (`fonts/`) ve Material Symbols ikonları (`icons/`). Derleme bunları sayfaların içine gömer.
 - `docs/DESIGN-ivory.md`: fildişi tasarım sistemi (renk token'ları, kontrast notları, bileşen kuralları, Stitch istemi).
 - `docs/design-review.md`: Stitch projesinin tasarım incelemesi.
 - `design/stitch-export/`: Google Stitch'ten dışa aktarılan orijinal 12 ekran ve tasarım sistemi.
@@ -67,12 +75,12 @@ Girişler yalnızca demo amaçlıdır; doğrulama tarayıcıda yapılır.
 
 ```bash
 npm i -D playwright   # Chromium yüklü değilse: npx playwright install chromium
-node tests/e2e.js  "$PWD/index.html" /tmp/shots
-node tests/e2e2.js "$PWD/index.html" /tmp/shots
-node tests/e2e3.js "$PWD/index.html" /tmp/shots
-node tests/e2e4.js "$PWD/index.html" /tmp/shots <png-klasörü>
-node tests/e2e5.js "$PWD/index.html" /tmp/shots
-node tests/e2e6.js "$PWD/index.html" /tmp/shots
+node tests/e2e.js  "$PWD" /tmp/shots
+node tests/e2e2.js "$PWD" /tmp/shots
+node tests/e2e3.js "$PWD" /tmp/shots
+node tests/e2e4.js "$PWD" /tmp/shots <png-klasörü>
+node tests/e2e5.js "$PWD" /tmp/shots
+node tests/e2e6.js "$PWD" /tmp/shots
 ```
 
 `e2e4.js` için klasörde `dish.png` ve `logo.png` bulunmalıdır. Her test sorunsuz geçince `OK` yazar.

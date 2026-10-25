@@ -642,7 +642,14 @@ function qrSVG(text, size = 168) {
 
 /* ---------------- routing ---------------- */
 function route() { const p = (location.hash || "#/").replace(/^#\/?/, "").split("/"); return { role: p[0] || "", view: p[1] || "", arg: decodeURIComponent(p[2] || "") }; }
-const go = h => { if (location.hash === h) render(true); else location.hash = h; };
+const APP = window.APP || "all";
+const APP_FILES = { guest: "guest.html", staff: "staff.html", kitchen: "kitchen.html", admin: "admin.html", saas: "platform.html" };
+const APP_HOME = () => ({ guest: S.session.joined ? "#/guest/menu" : "#/guest/join", staff: "#/staff/tables", kitchen: "#/kitchen/board", admin: "#/admin/dash", saas: "#/saas/overview" })[APP];
+const go = h => {
+  const role = h.replace(/^#\/?/, "").split("/")[0];
+  if (APP !== "all" && role !== APP) { if (APP_FILES[role]) location.href = APP_FILES[role] + h; return; }
+  if (location.hash === h) render(true); else location.hash = h;
+};
 window.addEventListener("hashchange", () => { ui.sheet = null; render(true); });
 
 /* ============================================================
@@ -993,6 +1000,13 @@ function gBooked(code) {
     <button class="btn ghost block mt8" data-go="#/guest/menu">${L("Sfoglia il menù in anteprima", "Preview the menu", "Menüye önceden göz at")}${ic("arrow_forward")}</button>`}`, { noSess: true });
 }
 
+function dishMedia(d) {
+  const v = d.explode && (ui.dview === "x" || !d.poster) ? "x" : "p";
+  const src = v === "x" ? d.explode : d.poster;
+  return `${d.explode && d.poster ? `<div class="seg" style="margin-bottom:8px" role="tablist" aria-label="${L("Vista", "View", "Görünüm")}">${[["p", "restaurant", L("Il piatto", "The dish", "Tabak")], ["x", "layers", L("Ingredienti", "Ingredients", "İçindekiler")]].map(([k, i, n]) => `<button role="tab" aria-selected="${v === k}" class="${v === k ? "on" : ""}" data-a="dview" data-v="${k}">${ic(i)}${n}</button>`).join("")}</div>` : ""}
+    <div class="pimg media"><img src="${asset(src)}" alt="${esc(d.name)}${v === "x" ? " · " + L("ingredienti", "ingredients", "içindekiler") : ""}" onerror="this.closest('.pimg').remove()"></div>`;
+}
+
 /* ============================================================
    STAFF (floor) APP
    ============================================================ */
@@ -1023,12 +1037,6 @@ function sTablesWide() {
     <div class="row wrap between"><div class="legend"><span><i style="background:var(--raised);border:1px solid var(--stone)"></i>${L("Libero", "Free", "Boş")}</span><span><i style="background:var(--bosco)"></i>${L("Occupato", "Seated", "Dolu")}</span><span><i style="background:#F3DED3"></i>${L("Riservato", "Reserved", "Rezerve")}</span></div><span class="label">${seated.length}/${S.tables.length} · ${seated.reduce((a, t) => a + t.guests, 0)} ${L("coperti", "covers", "kişi")}</span></div>
     ${["dehors", "sala"].map(a => `<div class="h2 mt16">${areaName(a)}</div><div class="mt8">${planHTML(a, "staff")}</div>`).join("")}
   </div><aside aria-label="${L("Dettaglio tavolo", "Table detail", "Masa detayı")}">${sTableBody(ui.selT)}</aside></div>`);
-}
-function dishMedia(d) {
-  const v = d.explode && (ui.dview === "x" || !d.poster) ? "x" : "p";
-  const src = v === "x" ? d.explode : d.poster;
-  return `${d.explode && d.poster ? `<div class="seg" style="margin-bottom:8px" role="tablist" aria-label="${L("Vista", "View", "Görünüm")}">${[["p", "restaurant", L("Il piatto", "The dish", "Tabak")], ["x", "layers", L("Ingredienti", "Ingredients", "İçindekiler")]].map(([k, i, n]) => `<button role="tab" aria-selected="${v === k}" class="${v === k ? "on" : ""}" data-a="dview" data-v="${k}">${ic(i)}${n}</button>`).join("")}</div>` : ""}
-    <div class="pimg media"><img src="${asset(src)}" alt="${esc(d.name)}${v === "x" ? " · " + L("ingredienti", "ingredients", "içindekiler") : ""}" onerror="this.closest('.pimg').remove()"></div>`;
 }
 function sTables() {
   if (wide()) return sTablesWide();
@@ -1134,9 +1142,9 @@ function deskShell(kind, view, title, sub, body, actions = "") {
       <div class="sp"></div>
       <div style="padding:0 6px 10px">${langSwitch()}</div>
       <a class="nav" href="#" data-a="logout" data-v="${kind}">${ic("logout")}${L("Esci", "Sign out", "Çıkış yap")}</a>
-      <a class="nav" href="#/apps">${ic("apps")}${L("Tutte le app", "All apps", "Tüm uygulamalar")}</a>
+      ${APP === "all" ? `<a class="nav" href="#/apps">${ic("apps")}${L("Tutte le app", "All apps", "Tüm uygulamalar")}</a>` : ""}
     </aside>
-    <div><nav class="mobtabs"><a href="#/apps">${ic("apps")}</a>${nav.map(n => `<a class="${cur === n[0] ? "on" : ""}" href="#/${kind}/${n[0]}">${ic(n[1])}${n[2]}</a>`).join("")}<a href="#" data-a="logout" data-v="${kind}">${ic("logout")}</a></nav>
+    <div><nav class="mobtabs">${APP === "all" ? `<a href="#/apps">${ic("apps")}</a>` : ""}${nav.map(n => `<a class="${cur === n[0] ? "on" : ""}" href="#/${kind}/${n[0]}">${ic(n[1])}${n[2]}</a>`).join("")}<a href="#" data-a="logout" data-v="${kind}">${ic("logout")}</a></nav>
     <main class="dmain view"><div class="dhead"><div><div class="label">${sub}</div><div class="h-display" style="font-size:2rem">${title}</div></div><div class="row wrap">${actions}</div></div>${body}</main></div></div>`;
 }
 const kpi = (label, value, note) => `<div class="card kpi"><div class="label">${label}</div><div class="v">${value}</div>${note ? `<div class="body-md mt8">${note}</div>` : ""}</div>`;
@@ -1301,8 +1309,11 @@ const me = () => S.staff.find(x => x.id === ui.auth.staff);
 const ALLOW = { staff: ["waiter", "maitre", "owner"], kitchen: ["chef", "pizza", "maitre", "owner"] };
 const DEMO = { admin: ["titolare@palatino.demo"], saas: ["ops@resto.demo", "Resto2026", "246810"] };
 
+/* ============================================================
+   SIGN-IN SCREENS (staff PIN, admin, platform)
+   ============================================================ */
 function authShell(title, inner, kind = "") {
-  return `<div class="phone"><header class="gh"><div class="top"><div class="logo" ${kind === "saas" ? 'style="background:var(--terra)"' : ""}>${kind === "saas" ? "R" : "P"}</div><div class="grow"><div class="rname">${kind === "saas" ? "RESTO · Platform" : "Palatino · Torino"}</div><div class="stitle">${title}</div></div>${langSwitch()}<button class="iconbtn line" data-go="#/apps" aria-label="Apps">${ic("apps")}</button></div></header><main class="main view">${inner}</main></div>`;
+  return `<div class="phone"><header class="gh"><div class="top"><div class="logo" ${kind === "saas" ? 'style="background:var(--terra)"' : ""}>${kind === "saas" ? "R" : "P"}</div><div class="grow"><div class="rname">${kind === "saas" ? "RESTO · Platform" : "Palatino · Torino"}</div><div class="stitle">${title}</div></div>${langSwitch()}${APP === "all" ? `<button class="iconbtn line" data-go="#/apps" aria-label="Apps">${ic("apps")}</button>` : ""}</div></header><main class="main view">${inner}</main></div>`;
 }
 function vPinLogin(ctx) {
   if (!ui.login || ui.login.ctx !== ctx) ui.login = { ctx, who: null, pin: "", err: false };
@@ -1510,13 +1521,13 @@ function sheetHTML() {
       <button class="radio" data-go="#/guest/bill">${ic("receipt_long")}<span class="grow">${L("Il conto", "The bill", "Hesap")}</span></button>` : ""}
       <button class="radio" data-go="#/guest/home">${ic("info")}<span class="grow">${L("Il locale e gli orari", "About & opening hours", "Mekân ve çalışma saatleri")}</span></button>
       <button class="radio" data-a="reset">${ic("restart_alt")}<span class="grow">${L("Ricomincia la demo (nuova scansione QR)", "Restart the demo (scan the QR again)", "Demoyu baştan başlat (QR'ı yeniden okut)")}</span></button></div>`;
-  else if (s.k === "roles") c = `<div class="h2">${L("Cambia app", "Switch app", "Uygulama değiştir")}</div>
+  else if (s.k === "roles") c = `${APP === "all" ? `<div class="h2">${L("Cambia app", "Switch app", "Uygulama değiştir")}</div>
     <div class="col mt12">${[["#/apps", "apps", L("Tutte le app", "All apps", "Tüm uygulamalar")], ["#/guest/home", "smartphone", L("Ospite", "Guest", "Misafir")], ["#/staff/tables", "badge", L("Sala", "Floor staff", "Salon personeli")], ["#/kitchen/board", "skillet", "KDS"], ["#/admin/dash", "storefront", L("Gestione", "Admin", "Restoran yönetimi")], ["#/saas/overview", "hub", "RESTO SaaS"]].map(r => `<button class="radio" data-go="${r[0]}">${ic(r[1])}<span class="grow">${r[2]}</span>${ic("chevron_right")}</button>`).join("")}</div>
     <div class="label mt24">${L("Stati di sistema (demo)", "System states (demo)", "Sistem durumları (demo)")}</div>
     <div class="col mt8"><button class="radio" data-a="expire">${ic("timer_off")}<span class="grow">${L("Simula sessione scaduta", "Simulate expired session", "Oturum süresi doldu simülasyonu")}</span></button>
       <button class="radio" data-a="offline">${ic("wifi_off")}<span class="grow">${L("Simula offline", "Simulate offline", "Çevrimdışı simülasyonu")}</span><span class="switch ${ui.offline ? "on" : ""}"></span></button>
       <button class="radio" data-a="closeTable">${ic("receipt_long")}<span class="grow">${L("Chiudi il conto del tavolo D4", "Close table D4's bill", "D4 masasının hesabını kapat")}</span></button>
-      <button class="radio" data-a="reset">${ic("restart_alt")}<span class="grow">${L("Ripristina dati demo", "Reset demo data", "Demo verisini sıfırla")}</span></button></div>
+      <button class="radio" data-a="reset">${ic("restart_alt")}<span class="grow">${L("Ripristina dati demo", "Reset demo data", "Demo verisini sıfırla")}</span></button></div>` : `<div class="h2">${R.full}</div><div class="col mt12"><button class="radio" data-a="reset">${ic("restart_alt")}<span class="grow">${L("Ripristina dati demo", "Reset demo data", "Demo verisini sıfırla")}</span></button></div>`}
     ${me() ? `<div class="label mt24">${esc(me().name)} · ${roleName(me().role)}</div><div class="col mt8"><button class="radio" data-a="lock">${ic("lock")}<span class="grow">${L("Blocca (cambio utente)", "Lock (switch user)", "Kilitle (kullanıcı değiştir)")}</span></button><button class="radio" data-a="endShift">${ic("logout")}<span class="grow">${L("Chiudi turno ed esci", "End shift & sign out", "Vardiyayı bitir ve çıkış yap")}</span></button></div>` : ""}`;
   if (s.k === "share") c = `<div class="h2">${L("Condividi il tavolo", "Share the table", "Masayı paylaş")} ${S.session.table}</div><p class="body-md mt8">${L("Chi scansiona questo codice entra nello stesso ordine.", "Anyone who scans this joins the same order.", "Bu kodu okutan herkes aynı siparişe katılır.")}</p><div class="center mt16"><div class="qr">${qrSVG("D4-session")}</div><div class="body-md mt8">${L("Codice tavolo", "Table code", "Masa kodu")}: <b>D4 · 7Q2K</b></div><div class="muted" style="font-size:.72rem">${L("Immagine illustrativa, non un QR reale", "Illustrative, not a real QR", "Örnek görsel, gerçek QR değildir")}</div></div><button class="btn primary block mt16" data-a="copy" data-v="resto.app/palatino/t/D4">${ic("link")}${L("Copia link", "Copy link", "Linki kopyala")}</button>`;
   if (s.k === "qr") c = `<div class="h2">QR · ${L("Tavolo", "Table", "Masa")} ${s.v}</div><div class="center mt16"><div class="qr">${qrSVG("tbl-" + s.v, 200)}</div><div class="t-sm mt12">resto.app/palatino/t/${s.v}</div><div class="muted" style="font-size:.72rem">${L("Immagine illustrativa, non un QR reale", "Illustrative, not a real QR", "Örnek görsel, gerçek QR değildir")}</div></div><div class="grid2 mt16"><button class="btn secondary" data-a="toast" data-v="regen">${ic("autorenew")}${L("Rigenera", "Regenerate", "Yenile")}</button><button class="btn primary" data-a="toast" data-v="printqr">${ic("print")}${L("Stampa", "Print", "Yazdır")}</button></div>`;
@@ -1552,6 +1563,7 @@ function sheetHTML() {
    ============================================================ */
 function view() {
   const r = route();
+  if (APP !== "all" && r.role !== APP) { history.replaceState(null, "", APP_HOME()); return view(); }
   document.title = "RESTO · " + ({ guest: L("Ospite", "Guest", "Misafir"), staff: L("Sala", "Floor", "Salon"), kitchen: "KDS", admin: "Palatino", saas: "Platform" }[r.role] || "Palatino");
   if (r.role === "guest") {
     const v = r.view || "home";

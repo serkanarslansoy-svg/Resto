@@ -1,9 +1,19 @@
 #!/usr/bin/env python3
-"""Build the self-contained index.html from src/app.html.
+"""Build one self-contained HTML page per user type from src/app.html.
 
-Inlines the web fonts, the Material Symbols icon paths and every image under
-assets/ (re-encoded smaller), so the page works when opened as a single file
-on a phone, with no network and no assets folder next to it.
+    guest.html     the guest scans the table QR and lands here (menu, order, bill, booking)
+    staff.html     waiters and floor staff (tables, guest orders, calls, bills)
+    kitchen.html   kitchen display (tickets by station)
+    admin.html     restaurant owner (menu, tables & QR, bookings, staff, reports)
+    platform.html  RESTO operators (tenants, plans, health)
+    index.html     demo hub that links the five pages (no app code)
+
+Each page only contains the screens of its own user type: code sections of the
+other apps are left out at build time, and the router keeps the page on its own
+role. Fonts, icons and the images a page needs are inlined, so every file works
+on its own (phone viewer, no network). Pages served from the same site share
+the demo data through localStorage, so a guest order shows up on staff.html and
+kitchen.html.
 
     python3 tools/build.py          # needs Pillow (pip install pillow)
 """
@@ -11,46 +21,130 @@ import base64, io, json, os, re, sys
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC, OUT = os.path.join(ROOT, "src", "app.html"), os.path.join(ROOT, "index.html")
+SRC = os.path.join(ROOT, "src", "app.html")
+
+# section titles (the line after each "/* ====" banner in src/app.html) -> apps that keep them
+SECTIONS = {
+    "RESTO · Palatino": "all",
+    "LAUNCHER": "",
+    "GUEST APP": "guest",
+    "STAFF (floor) APP": "staff admin",
+    "KITCHEN DISPLAY (KDS)": "kitchen",
+    "RESTAURANT ADMIN (desktop)": "admin saas",
+    "SAAS ADMIN": "saas",
+    "SIGN-IN SCREENS": "staff kitchen admin saas",
+    "SIGN-IN": "all",
+    "STAFF · MANUAL TICKET": "staff",
+    "SPLITTING THE BILL": "guest staff",
+    "KITCHEN HELPERS + REPORTS": "kitchen admin",
+    "SHEETS": "all",
+    "RENDER": "all",
+    "ACTIONS": "all",
+}
+PAGES = {
+    "guest": ("guest.html", "Palatino · Menù", "posters exploded brand"),
+    "staff": ("staff.html", "Palatino · Sala", "brand"),
+    "kitchen": ("kitchen.html", "Palatino · Cucina", "brand"),
+    "admin": ("admin.html", "Palatino · Gestione", "posters brand"),
+    "saas": ("platform.html", "RESTO · Platform", "brand"),
+}
 MAX_W = {"posters": 720, "exploded": 720, "brand": 520}
+THUMB_W = 240  # admin only shows posters as small thumbnails
 
 
 def b64(data, mime):
     return f"data:{mime};base64," + base64.b64encode(data).decode()
 
 
-def image_uri(rel):
-    folder = rel.split("/")[1]
+def image_uri(rel, width):
     im = Image.open(os.path.join(ROOT, rel)).convert("RGB")
-    im.thumbnail((MAX_W.get(folder, 720), 4000))
+    im.thumbnail((width, 4000))
     buf = io.BytesIO()
     im.save(buf, "JPEG", quality=78, optimize=True, progressive=True)
     return b64(buf.getvalue(), "image/jpeg")
 
 
-def main():
-    html = open(SRC, encoding="utf-8").read()
+def strip_sections(js, app):
+    banner = re.compile(r"/\* =+\n   ([^\n]+)\n")
+    starts = [m for m in banner.finditer(js)]
+    out, last = [js[: starts[0].start()]], None
+    for i, m in enumerate(starts):
+        end = starts[i + 1].start() if i + 1 < len(starts) else len(js)
+        title = m.group(1)
+        key = next((k for k in SECTIONS if title.startswith(k)), None)
+        assert key, f"unknown section: {title}"
+        keep = SECTIONS[key]
+        if keep == "all" or app in keep.split():
+            out.append(js[m.start():end])
+        else:
+            out.append(f"/* [{title.split(' (')[0]} omitted from this page] */\n")
+    return "".join(out)
 
-    # fonts: replace the dev <link> with an inline <style> of data URIs
-    fdir = os.path.join(ROOT, "assets", "fonts")
-    css = open(os.path.join(fdir, "fonts.css"), encoding="utf-8").read()
-    css = re.sub(r"url\(([^)]+\.woff2)\)", lambda m: "url(" + b64(open(os.path.join(fdir, m.group(1)), "rb").read(), "font/woff2") + ")", css)
-    html, n = re.subn(r'<!-- @build:fonts[^>]*-->\s*<link rel="stylesheet" href="\.\./assets/fonts/fonts\.css">', "<style>\n" + css + "</style>", html)
+
+def build_page(src, app, fonts_css, icons):
+    fname, title, kinds = PAGES[app]
+    html = src
+    html, n = re.subn(r'<!-- @build:fonts[^>]*-->\s*<link rel="stylesheet" href="\.\./assets/fonts/fonts\.css">', lambda m: "<style>\n" + fonts_css + "</style>", html)
     assert n == 1, "font placeholder not found"
-
-    # icons
-    icons = open(os.path.join(ROOT, "assets", "icons", "material-symbols.json"), encoding="utf-8").read()
     html, n = re.subn(r'/\*@build:icons\*/\{ "outlined": \{\}, "filled": \{\} \}', lambda m: icons, html)
     assert n == 1, "icon placeholder not found"
+    head, rest = html.split("<script>", 1)
+    js, tail = rest.split("</script>", 1)
+    js = strip_sections(js, app)
+    paths = sorted(set(re.findall(r'assets/(?:posters|exploded|brand)/[a-z0-9-]+\.jpg', js)))
+    assets = {}
+    for p in paths:
+        kind = p.split("/")[1]
+        if kind in kinds.split():
+            assets[p] = image_uri(p, THUMB_W if app == "admin" and kind == "posters" else MAX_W[kind])
+    head = re.sub(r"<title>[^<]*</title>", f"<title>{title}</title>", head)
+    page = (head + "<script>\nwindow.APP = " + json.dumps(app) + ";\nwindow.ASSETS = " + json.dumps(assets) + ";\n</script>\n<script>" + js + "</script>" + tail)
+    page = page.replace("<!doctype html>", f"<!doctype html>\n<!-- GENERATED by tools/build.py from src/app.html ({app} page): edit the source, then rebuild. -->", 1)
+    open(os.path.join(ROOT, fname), "w", encoding="utf-8").write(page)
+    return fname, len(page), len(assets)
 
-    # images: one ASSETS map; the app resolves paths through A(path)
-    paths = sorted(set(re.findall(r'assets/(?:posters|exploded|brand)/[a-z0-9-]+\.jpg', html)))
-    assets = {p: image_uri(p) for p in paths}
-    html = html.replace("<script>", "<script>\nwindow.ASSETS = " + json.dumps(assets) + ";\n</script>\n<script>", 1)
 
-    html = html.replace("<!doctype html>", "<!doctype html>\n<!-- GENERATED by tools/build.py from src/app.html: edit the source, then rebuild. -->", 1)
-    open(OUT, "w", encoding="utf-8").write(html)
-    print(f"index.html: {len(html) / 1e6:.2f} MB, {len(assets)} images, fonts and icons inlined")
+HUB = """<!doctype html>
+<!-- GENERATED by tools/build.py: demo hub, contains no app code. -->
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#172C2A"><title>RESTO · Palatino demo</title>
+<style>
+:root{--canvas:#F6F2E9;--ink:#232723;--ink2:#55574F;--bosco:#172C2A;--stone:#D8D1C3;--terra:#904C2D}
+*{box-sizing:border-box;margin:0}body{background:var(--canvas);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;padding:28px 16px 48px}
+main{max-width:720px;margin:0 auto}h1{font:500 1.9rem/1.2 Georgia,serif;margin:6px 0 8px}.lbl{font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+p{color:var(--ink2)}a.card{display:flex;gap:14px;align-items:center;background:#fff;border:1px solid var(--stone);border-radius:8px;padding:16px;margin-top:12px;text-decoration:none;color:inherit}
+a.card:hover{border-color:var(--bosco)}.tag{flex:none;width:44px;height:44px;border-radius:4px;background:var(--bosco);color:#fff;display:flex;align-items:center;justify-content:center;font:600 .8rem system-ui}
+.t{font-weight:600}.f{font-size:.8rem;color:var(--terra);font-weight:600}.note{margin-top:24px;background:#EFEADF;border-radius:8px;padding:14px;font-size:.9rem}
+</style></head><body><main>
+<div class="lbl">RESTO · Palatino Ristorante Pizzeria, Torino</div>
+<h1>Demo sayfaları</h1>
+<p>Her kullanıcı kendi sayfasını açar. Misafir masadaki QR'ı okuttuğunda yalnızca misafir sayfasına girer; personel ekranlarına oradan ulaşılamaz.</p>
+__CARDS__
+<div class="note"><b>Birlikte deneme:</b> sayfaları aynı tarayıcıda ayrı sekmelerde açın. Misafirin verdiği sipariş garson ve mutfak sayfalarına anında düşer. Gerçek sistemde bu bağlantıyı sunucu sağlar.<br><br>
+<b>Demo girişleri:</b> garson Luca 2222 · maître Sara 1111 · mutfak Davide 4444 · pizza Elena 5555 · yönetim titolare@palatino.demo / Palatino2026 · RESTO ops@resto.demo / Resto2026, kod 246810</div>
+</main></body></html>
+"""
+CARDS = [
+    ("guest.html", "QR", "Misafir", "Masadaki QR'ın açtığı sayfa: menü, fiyatlar, sipariş, hesap, rezervasyon."),
+    ("staff.html", "SALA", "Garson / salon", "Masalar, misafir siparişleri, çağrılar, hazır yemekler, hesap ve tahsilat."),
+    ("kitchen.html", "KDS", "Mutfak", "İstasyona göre fişler, süreler, tükenen ürünler."),
+    ("admin.html", "ADM", "Restoran yönetimi", "Menü ve fiyatlar, masalar ve QR, rezervasyonlar, personel, raporlar."),
+    ("platform.html", "R", "RESTO platformu", "İşletmeler, kayıt, planlar, sistem durumu."),
+]
+
+
+def main():
+    src = open(SRC, encoding="utf-8").read()
+    fdir = os.path.join(ROOT, "assets", "fonts")
+    fonts_css = open(os.path.join(fdir, "fonts.css"), encoding="utf-8").read()
+    fonts_css = re.sub(r"url\(([^)]+\.woff2)\)", lambda m: "url(" + b64(open(os.path.join(fdir, m.group(1)), "rb").read(), "font/woff2") + ")", fonts_css)
+    icons = open(os.path.join(ROOT, "assets", "icons", "material-symbols.json"), encoding="utf-8").read()
+    for app in PAGES:
+        fname, size, n = build_page(src, app, fonts_css, icons)
+        print(f"{fname:14} {size / 1e6:5.2f} MB  {n:2} images")
+    cards = "\n".join(f'<a class="card" href="{f}"><span class="tag">{t}</span><span><span class="t">{name}</span><br><span style="color:#55574F;font-size:.9rem">{d}</span><br><span class="f">{f}</span></span></a>' for f, t, name, d in CARDS)
+    open(os.path.join(ROOT, "index.html"), "w", encoding="utf-8").write(HUB.replace("__CARDS__", cards))
+    print("index.html     demo hub")
 
 
 if __name__ == "__main__":
