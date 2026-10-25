@@ -9,11 +9,11 @@ const F = (h = '') => DIR + (PAGE[h.replace(/^#\/?/, '').split('/')[0]] || 'gues
   await d.goto(F('#/guest/join')); await d.evaluate(() => { localStorage.clear(); sessionStorage.clear(); }); await d.goto(F('#/guest/join')); await d.waitForTimeout(150);
   await d.goto(F('#/admin/menu')); await d.click('[data-a=aFill]'); await d.click('[data-a=aLogin]'); await d.waitForTimeout(250);
   // dish photo
-  await d.click('[data-a=editDish][data-v=p1]'); await d.waitForTimeout(100);
+  await d.click('[data-a=editDish][data-v=p2]'); await d.waitForTimeout(100);
   await d.setInputFiles('.sheet input[data-ch=edImg]', IMG + '/dish.png'); await d.waitForTimeout(500);
   if (!(await d.locator('.sheet img').count())) errs.push('no preview');
   await d.click('[data-a=edSave]'); await d.waitForTimeout(150);
-  const img = await d.evaluate(() => { const S = JSON.parse(localStorage.getItem('resto.palatino.v5')); const i = S.menu.find(x => x.id === 'p1').img; return i ? i.length : 0; });
+  const img = await d.evaluate(() => { const S = JSON.parse(localStorage.getItem('resto.palatino.v5')); const i = S.menu.find(x => x.id === 'p2').img; return i ? i.length : 0; });
   if (img < 1000 || img > 200000) errs.push('img size ' + img);
   // brand
   await d.goto(F('#/admin/settings')); await d.waitForTimeout(150);
