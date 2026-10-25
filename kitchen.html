@@ -422,7 +422,7 @@ window.ASSETS = {"assets/brand/palatino-mark.jpg": "data:image/jpeg;base64,/9j/4
    RESTO · Palatino — clickable app prototype (design review)
    All roles share one demo store (localStorage, synced across tabs).
    ============================================================ */
-const KEY = "resto.palatino.v6";
+const KEY = "resto.palatino.v7";
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -540,13 +540,13 @@ const SEED_MENU = [
   { id: "s8", cat: "secondi", st: "cucina", name: "Grigliata di mare", price: 26, alg: ["cro", "mol", "pesce"], algTbd: true, tags: ["condividere"], poster: "assets/posters/grigliata-mare.jpg", explode: "assets/exploded/grigliata-mare.jpg",
     ing: [["Gamberi", "Prawns", "Karides"], ["Seppia e calamari", "Cuttlefish & squid", "Mürekkep balığı ve kalamar"], ["Filetto di tonno", "Tuna fillet", "Ton balığı fileto"], ["Filetto di salmone", "Salmon fillet", "Somon fileto"], ["Salmoriglio e succhi", "Salmoriglio & juices", "Salmoriglio sosu"], ["Spicchi di limone ed erbe", "Lemon wedges & herbs", "Limon ve yeşillik"], ["Prezzemolo e spezie", "Parsley & spices", "Maydanoz ve baharat"]],
     d: ["Assortimento ai ferri: gamberi, calamari, seppia, tonno e salmone.", "Mixed grill: prawns, squid, cuttlefish, tuna and salmon.", "Izgara karışık: karides, kalamar, mürekkep balığı, ton ve somon."] },
-  { id: "z1", cat: "pizze", st: "pizzeria", name: "Margherita", price: 8, alg: ["glu", "lat"], tags: ["veg"], opt: "imp",
-    d: ["Pomodoro, fior di latte, basilico.", "Tomato, fior di latte, basil.", "Domates, fior di latte, fesleğen."] },
-  { id: "z2", cat: "pizze", st: "pizzeria", name: "Diavola", price: 10, alg: ["glu", "lat"], tags: ["piccante"], opt: "imp",
+  { id: "z1", cat: "pizze", st: "pizzeria", name: "Margherita", poster: "assets/posters/margherita.jpg", explode: "assets/exploded/margherita.jpg", ing: [["Pomodoro", "Tomato", "Domates"], ["Fior di latte", "Fior di latte", "Fior di latte"], ["Basilico fresco", "Fresh basil", "Taze fesleğen"], ["Impasto", "Dough", "Hamur"], ["Crosta", "Crust", "Kenar"]], price: 8, alg: ["glu", "lat"], tags: ["veg"], opt: "imp",
+    d: ["Pomodoro, fior di latte e basilico fresco.", "Tomato, fior di latte, basil.", "Domates, fior di latte, fesleğen."] },
+  { id: "z2", cat: "pizze", st: "pizzeria", name: "Diavola", poster: "assets/posters/diavola.jpg", explode: "assets/exploded/diavola.jpg", ing: [["Pomodoro", "Tomato", "Domates"], ["Fior di latte", "Fior di latte", "Fior di latte"], ["Salame piccante", "Spicy salami", "Acı salam"], ["Impasto", "Dough", "Hamur"], ["Crosta", "Crust", "Kenar"]], price: 10, alg: ["glu", "lat"], tags: ["piccante"], opt: "imp",
     d: ["Pomodoro, fior di latte, salame piccante.", "Tomato, fior di latte, spicy salami.", "Domates, fior di latte, acı salam."] },
-  { id: "z3", cat: "pizze", st: "pizzeria", name: "Piemontese", price: 12, alg: ["glu", "lat"], tags: [], opt: "imp",
+  { id: "z3", cat: "pizze", st: "pizzeria", name: "Piemontese", poster: "assets/posters/piemontese.jpg", explode: "assets/exploded/piemontese.jpg", ing: [["Fior di latte", "Fior di latte", "Fior di latte"], ["Salsiccia di Bra", "Bra sausage", "Bra sosisi"], ["Toma piemontese", "Piedmont toma", "Toma peyniri"], ["Impasto", "Dough", "Hamur"], ["Crosta", "Crust", "Kenar"]], price: 12, alg: ["glu", "lat"], tags: [], opt: "imp",
     d: ["Fior di latte, salsiccia di Bra, toma piemontese.", "Fior di latte, Bra sausage, Piedmont toma.", "Fior di latte, Bra sosisi, toma peyniri."] },
-  { id: "z4", cat: "pizze", st: "pizzeria", name: "Ortolana", price: 10, alg: ["glu", "lat"], tags: ["veg"], opt: "imp",
+  { id: "z4", cat: "pizze", st: "pizzeria", name: "Ortolana", poster: "assets/posters/ortolana.jpg", explode: "assets/exploded/ortolana.jpg", ing: [["Pomodoro", "Tomato", "Domates"], ["Fior di latte", "Fior di latte", "Fior di latte"], ["Verdure di stagione grigliate", "Grilled seasonal vegetables", "Izgara mevsim sebzeleri"], ["Basilico fresco", "Fresh basil", "Taze fesleğen"], ["Impasto", "Dough", "Hamur"], ["Crosta", "Crust", "Kenar"]], price: 10, alg: ["glu", "lat"], tags: ["veg"], opt: "imp",
     d: ["Verdure di stagione grigliate, fior di latte.", "Grilled seasonal vegetables, fior di latte.", "Izgara mevsim sebzeleri, fior di latte."] },
   { id: "d1", cat: "dolci", st: "cucina", name: "Bonet", price: 6, alg: ["uova", "lat", "noci", "glu"], tags: ["tradizione"],
     d: ["Budino piemontese al cacao e amaretti.", "Piedmontese cocoa and amaretti pudding.", "Kakao ve amarettili Piemonte pudingi."] },
@@ -636,7 +636,7 @@ function seed() {
     { id: uid(), no: 41, table: "T5", by: "Sala", ts: t - 3 * MIN, note: L("1 ospite celiaco", "1 coeliac guest", "1 çölyak misafir"), items: [it("p1", 2, "new"), it("z1", 1, "new", { opt: "sg", note: "celiaco" }), it("b1", 2, "new"), it("d1", 2, "new", { held: true })] }
   ];
   return {
-    v: 6, brand: { primary: "#172C2A", logo: "assets/brand/palatino-mark.jpg", tagline: "Ristorante · Pizzeria" }, splits: {}, adminPw: "Palatino2026", menu: SEED_MENU.map(d => ({ ...d, avail: d.id !== "s1" })), tables, orders, seq: 41,
+    v: 7, brand: { primary: "#172C2A", logo: "assets/brand/palatino-mark.jpg", tagline: "Ristorante · Pizzeria" }, splits: {}, adminPw: "Palatino2026", menu: SEED_MENU.map(d => ({ ...d, avail: d.id !== "s1" })), tables, orders, seq: 41,
     requests: [
       { id: uid(), table: "T3", type: "bill", ts: t - 3 * MIN, status: "open" },
       { id: uid(), table: "D2", type: "water", ts: t - 5 * MIN, status: "ack", by: "Luca" }
@@ -676,7 +676,7 @@ function seed() {
   };
 }
 let S;
-function load() { try { const j = JSON.parse(lsGet(KEY)); if (j && j.v === 6) return j; } catch (e) {} return null; }
+function load() { try { const j = JSON.parse(lsGet(KEY)); if (j && j.v === 7) return j; } catch (e) {} return null; }
 // some viewers (sandboxed previews, private modes) have no storage: the demo then just runs in memory
 const STORAGE_OK = (() => { try { localStorage.setItem("resto.t", "1"); localStorage.removeItem("resto.t"); return true; } catch (e) { return false; } })();
 function save() { if (!STORAGE_OK) return true; const ok = lsSet(KEY, JSON.stringify(S)); if (!ok) setTimeout(() => toast(L("Memoria del browser piena: usa meno foto", "Browser storage full — use fewer photos", "Tarayıcı depolaması dolu — daha az fotoğraf kullanın")), 0); return ok; }
