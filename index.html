@@ -305,6 +305,14 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--raised);border:1p
 .logo img{width:100%;height:100%;object-fit:cover;border-radius:inherit;background:#fff}
 .thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 80%}
 .dish.hp{flex-wrap:wrap}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--sunk);border-radius:var(--r);padding:3px;gap:3px}
+.seg button{min-height:40px;border-radius:var(--r-sm);font-weight:600;font-size:.88rem;color:var(--ink-2);display:flex;align-items:center;justify-content:center;gap:6px}
+.seg button.on{background:var(--raised);color:var(--ink);box-shadow:0 0 0 1px var(--stone)}
+.media img{animation:fade .25s}
+.ing{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;counter-reset:ing}
+.ing li{list-style:none;display:flex;gap:8px;align-items:flex-start;font-size:.88rem;line-height:1.3}
+.ing li::before{counter-increment:ing;content:counter(ing);flex:none;width:20px;height:20px;border-radius:50%;background:var(--terra-tint);color:var(--terra-ink);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+.ing li small{display:block;color:var(--muted);font-size:.74rem}
 .pimg{display:block;width:100%;border-radius:var(--r-lg);border:1px solid var(--stone)}
 .pimg img{display:block;width:100%;height:auto;border-radius:inherit}
 .posters{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 -16px;padding:0 16px 4px}
@@ -347,7 +355,7 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--raised);border:1p
    RESTO · Palatino — clickable app prototype (design review)
    All roles share one demo store (localStorage, synced across tabs).
    ============================================================ */
-const KEY = "resto.palatino.v3";
+const KEY = "resto.palatino.v4";
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -444,10 +452,21 @@ const SEED_MENU = [
     d: ["Calamari, gamberi e pesce fritti, limone.", "Fried squid, prawns and fish with lemon.", "Kızarmış kalamar, karides ve balık, limonla."] },
   { id: "s3", cat: "secondi", st: "cucina", name: "Brasato al Barbera", price: 19, alg: ["sed", "sol"], algTbd: true, tags: ["tradizione"], img: "assets/posters/brasato-barbera.jpg", poster: "assets/posters/brasato-barbera.jpg",
     d: ["Manzo brasato a lungo nel Barbera, patate al forno al rosmarino.", "Beef slow-braised in Barbera wine, rosemary roast potatoes.", "Barbera şarabında uzun süre pişmiş dana, biberiyeli fırın patates."] },
-  { id: "s4", cat: "secondi", st: "cucina", name: "Tagliata di vitello alle erbe", price: 21, alg: [], algTbd: true, tags: [], img: "assets/posters/tagliata-vitello.jpg", poster: "assets/posters/tagliata-vitello.jpg",
+  { id: "s4", cat: "secondi", st: "cucina", name: "Tagliata di vitello alle erbe", price: 21, alg: [], algTbd: true, tags: [], img: "assets/posters/tagliata-vitello.jpg", poster: "assets/posters/tagliata-vitello.jpg", explode: "assets/exploded/tagliata-vitello.jpg",
+    ing: [["Tagliata di vitello", "Sliced veal", "Dilimlenmiş dana"], ["Jus al ginepro profumato al limone", "Lemon-scented juniper jus", "Limon aromalı ardıç sosu"], ["Carote saltate", "Sautéed carrots", "Sote havuç"], ["Rosmarino", "Rosemary", "Biberiye"], ["Fetta di limone", "Lemon slice", "Limon dilimi"], ["Bacche di ginepro", "Juniper berries", "Ardıç tanesi"], ["Scorza di limone e timo fresco", "Lemon zest & fresh thyme", "Limon kabuğu ve taze kekik"]],
     d: ["Profumata al limone, con jus al ginepro e carote saltate.", "Lemon-scented, with juniper jus and sautéed carrots.", "Limon aromalı, ardıç sosu ve sote havuçla."] },
-  { id: "s5", cat: "secondi", st: "cucina", name: "Filetto in riduzione al Vermouth", price: 26, alg: ["lat", "sol"], algTbd: true, tags: [], img: "assets/posters/filetto-vermouth.jpg", poster: "assets/posters/filetto-vermouth.jpg",
+  { id: "s5", cat: "secondi", st: "cucina", name: "Filetto in riduzione al Vermouth", price: 26, alg: ["lat", "sol"], algTbd: true, tags: [], img: "assets/posters/filetto-vermouth.jpg", poster: "assets/posters/filetto-vermouth.jpg", explode: "assets/exploded/filetto-vermouth.jpg",
+    ing: [["Filetto di vitello", "Veal fillet", "Dana fileto"], ["Riduzione al Vermouth", "Vermouth reduction", "Vermut sosu"], ["Funghi porcini saltati", "Sautéed porcini", "Sote porçini mantarı"], ["Crema di topinambur", "Jerusalem artichoke cream", "Yer elması kreması"], ["Cicoria ripassata", "Sautéed chicory", "Sote hindiba"], ["Timo fresco e polvere di porcini", "Fresh thyme & porcini dust", "Taze kekik ve porçini tozu"], ["Granella e aromi", "Crumble & herbs", "Kırıntı ve aromatik otlar"]],
     d: ["Vitello con crema di topinambur, polvere di porcini e cicoria.", "Veal with Jerusalem artichoke cream, porcini dust and chicory.", "Yer elması kreması, porçini tozu ve hindiba ile dana fileto."] },
+  { id: "s6", cat: "secondi", st: "cucina", name: "Stinco di vitello alle noci", price: 24, alg: ["noci", "lat", "sed"], algTbd: true, tags: [], img: "assets/posters/stinco-vitello-noci.jpg", poster: "assets/posters/stinco-vitello-noci.jpg", explode: "assets/exploded/stinco-vitello-noci.jpg",
+    ing: [["Stinco di vitello", "Veal shank", "Dana incik"], ["Demi-glace al pepe", "Pepper demi-glace", "Karabiberli demi-glace"], ["Pere confit", "Pear confit", "Armut konfi"], ["Millefoglie di patate", "Potato millefeuille", "Katmerli patates"], ["Noci e pepe", "Walnuts & pepper", "Ceviz ve karabiber"], ["Timo fresco", "Fresh thyme", "Taze kekik"]],
+    d: ["Demi-glace al pepe, pere confit e millefoglie di patate.", "Pepper demi-glace, pear confit and potato millefeuille.", "Karabiberli demi-glace, armut konfi ve katmerli patates."] },
+  { id: "s7", cat: "secondi", st: "cucina", name: "Milanese di vitello", price: 22, alg: ["glu", "uova"], algTbd: true, tags: [], img: "assets/posters/milanese-vitello.jpg", poster: "assets/posters/milanese-vitello.jpg", explode: "assets/exploded/milanese-vitello.jpg",
+    ing: [["Cotoletta di vitello", "Veal cutlet", "Pane dana pirzola"], ["Patatine fritte", "French fries", "Patates kızartması"], ["Spicchio di limone", "Lemon wedge", "Limon dilimi"], ["Prezzemolo", "Parsley", "Maydanoz"], ["Sale", "Salt", "Tuz"]],
+    d: ["Classica cotoletta dorata e croccante con patatine fritte.", "Classic golden, crispy cutlet with French fries.", "Klasik altın renkli, çıtır pane pirzola ve patates kızartması."] },
+  { id: "s8", cat: "secondi", st: "cucina", name: "Grigliata di mare", price: 26, alg: ["cro", "mol", "pesce"], algTbd: true, tags: ["condividere"], img: "assets/posters/grigliata-mare.jpg", poster: "assets/posters/grigliata-mare.jpg", explode: "assets/exploded/grigliata-mare.jpg",
+    ing: [["Gamberi", "Prawns", "Karides"], ["Seppia e calamari", "Cuttlefish & squid", "Mürekkep balığı ve kalamar"], ["Filetto di tonno", "Tuna fillet", "Ton balığı fileto"], ["Filetto di salmone", "Salmon fillet", "Somon fileto"], ["Salmoriglio e succhi", "Salmoriglio & juices", "Salmoriglio sosu"], ["Spicchi di limone ed erbe", "Lemon wedges & herbs", "Limon ve yeşillik"], ["Prezzemolo e spezie", "Parsley & spices", "Maydanoz ve baharat"]],
+    d: ["Assortimento ai ferri: gamberi, calamari, seppia, tonno e salmone.", "Mixed grill: prawns, squid, cuttlefish, tuna and salmon.", "Izgara karışık: karides, kalamar, mürekkep balığı, ton ve somon."] },
   { id: "z1", cat: "pizze", st: "pizzeria", name: "Margherita", price: 8, alg: ["glu", "lat"], tags: ["veg"], opt: "imp",
     d: ["Pomodoro, fior di latte, basilico.", "Tomato, fior di latte, basil.", "Domates, fior di latte, fesleğen."] },
   { id: "z2", cat: "pizze", st: "pizzeria", name: "Diavola", price: 10, alg: ["glu", "lat"], tags: ["piccante"], opt: "imp",
@@ -507,7 +526,7 @@ function seed() {
     { id: uid(), no: 41, table: "T5", by: "Sala", ts: t - 3 * MIN, note: L("1 ospite celiaco", "1 coeliac guest", "1 çölyak misafir"), items: [it("p1", 2, "new"), it("z1", 1, "new", { opt: "sg", note: "celiaco" }), it("b1", 2, "new"), it("d1", 2, "new", { held: true })] }
   ];
   return {
-    v: 3, brand: { primary: "#172C2A", logo: "assets/brand/palatino-mark.jpg", tagline: "Ristorante · Pizzeria" }, splits: {}, adminPw: "Palatino2026", menu: SEED_MENU.map(d => ({ ...d, avail: d.id !== "s1" })), tables, orders, seq: 41,
+    v: 4, brand: { primary: "#172C2A", logo: "assets/brand/palatino-mark.jpg", tagline: "Ristorante · Pizzeria" }, splits: {}, adminPw: "Palatino2026", menu: SEED_MENU.map(d => ({ ...d, avail: d.id !== "s1" })), tables, orders, seq: 41,
     requests: [
       { id: uid(), table: "T3", type: "bill", ts: t - 3 * MIN, status: "open" },
       { id: uid(), table: "D2", type: "water", ts: t - 5 * MIN, status: "ack", by: "Luca" }
@@ -547,7 +566,7 @@ function seed() {
   };
 }
 let S;
-function load() { try { const j = JSON.parse(lsGet(KEY)); if (j && j.v === 3) return j; } catch (e) {} return null; }
+function load() { try { const j = JSON.parse(lsGet(KEY)); if (j && j.v === 4) return j; } catch (e) {} return null; }
 function save() { const ok = lsSet(KEY, JSON.stringify(S)); if (!ok) setTimeout(() => toast(L("Memoria del browser piena: usa meno foto", "Browser storage full — use fewer photos", "Tarayıcı depolaması dolu — daha az fotoğraf kullanın")), 0); return ok; }
 S = load() || seed();
 window.addEventListener("storage", e => { if (e.key === KEY) { const n = load(); if (n) { S = n; render(); } } });
@@ -712,7 +731,7 @@ function gJoin() {
 }
 
 function gHome() {
-  const s = S.session; const sp = dish("s3") || dish("p1"); const today = new Date().getDay();
+  const s = S.session; const sp = dish("s6") || dish("s3") || dish("p1"); const today = new Date().getDay();
   const posters = S.menu.filter(d => d.poster && d.avail);
   const heroImg = null;
   return guestShell("home", L("Benvenuti", "Welcome", "Hoş geldiniz"), `
@@ -770,7 +789,7 @@ function gMenu() {
           <div class="nm">${esc(d.name)}</div><div class="ds">${esc(d.d[ui.lang === "it" ? 0 : ui.lang === "en" ? 1 : 2])}</div>
           <div class="price mt8">${eur(d.price)}${d.opt === "imp" ? ` <span class="muted" style="font-weight:500;font-size:.78rem">${L("da", "from", "başlayan")}</span>` : ""}</div>
         </button>
-        <div class="col" style="align-items:flex-end;justify-content:${d.poster ? "flex-end" : "space-between"}">${d.poster ? "" : thumb(d)}
+        <div class="col" style="align-items:flex-end;justify-content:${d.poster ? "flex-end" : "space-between"}">${d.poster ? (d.explode ? `<button class="chip" style="min-height:32px;font-size:.78rem" data-a="openX" data-v="${d.id}">${ic("layers")}${L("Ingredienti", "Ingredients", "İçindekiler")}</button>` : "") : thumb(d)}
           ${!d.avail ? `<button class="btn secondary sm" data-go="#/guest/dish/${d.id}">${L("Alternative", "Alternatives", "Alternatifler")}</button>` :
             q ? `<div class="stepper"><button data-a="qmenu" data-v="${d.id}|-1" aria-label="-">${ic("remove")}</button><span class="tnum">${q}</span><button data-a="qmenu" data-v="${d.id}|1" aria-label="+">${ic("add")}</button></div>` :
             `<button class="btn primary sm" data-a="quick" data-v="${d.id}">${ic("add")}${L("Aggiungi", "Add", "Ekle")}</button>`}
@@ -783,7 +802,7 @@ function gMenu() {
 
 function gDish(id) {
   const d = dish(id); if (!d) return gMenu();
-  if (ui.dish !== id) { ui.dish = id; ui.dq = 1; ui.dopt = d.opt ? OPTS[d.opt][0][0] : null; }
+  if (ui.dish !== id) { ui.dish = id; ui.dq = 1; ui.dopt = d.opt ? OPTS[d.opt][0][0] : null; ui.dview = ui.dviewNext || "p"; ui.dviewNext = null; }
   const li = ui.lang === "it" ? 0 : ui.lang === "en" ? 1 : 2;
   const back = `<button class="btn ghost sm" style="padding-left:0" data-go="#/guest/menu">${ic("arrow_back")}${L("Torna al menù", "Back to menu", "Menüye dön")}</button>`;
   if (!d.avail) {
@@ -798,11 +817,12 @@ function gDish(id) {
   }
   const tot = (d.price + optDelta(d, ui.dopt)) * ui.dq;
   const body = `${back}
-    <div class="mt8">${d.poster ? `<div class="pimg"><img src="${d.poster}" alt="${esc(d.name)}" onerror="this.closest('.pimg').remove()"></div>` : thumb(d, "lg")}</div>
+    <div class="mt8">${d.poster || d.explode ? dishMedia(d) : thumb(d, "lg")}</div>
     <div class="row wrap mt16" style="gap:6px">${d.tags.map(t => `<span class="tag ${t === "tradizione" || t === "casa" ? "terra" : "stone"}">${tagName(t)}</span>`).join("")}</div>
     <div class="h-display mt8" style="font-size:1.8rem">${esc(d.name)}</div>
     <div class="row mt8"><span class="price" style="font-size:1.15rem;color:var(--terra-ink)">${eur(d.price)}</span><span class="body-md">${L("IVA inclusa · coperto a parte", "VAT incl. · cover extra", "KDV dahil · kuver ayrıca")}</span></div>
     <p class="serif mt12" style="font-size:1.1rem;font-style:italic;color:var(--ink-2)">“${esc(d.d[li])}”</p>
+    ${d.ing && d.ing.length ? `<div class="label mt24">${L("Nel piatto", "On the plate", "Tabakta neler var")}</div><ul class="ing mt8">${d.ing.map(x => `<li><span>${esc(x[0])}${ui.lang !== "it" ? `<small>${esc(ui.lang === "en" ? x[1] : x[2])}</small>` : ""}</span></li>`).join("")}</ul>${d.explode && ui.dview !== "x" ? `<button class="link mt8" style="display:inline-flex;gap:4px;align-items:center" data-a="dview" data-v="x">${ic("layers")}${L("Guarda gli ingredienti in esploso", "See the exploded view", "Malzemeleri katman katman gör")}</button>` : ""}` : ""}
     <div class="label mt24">${L("Allergeni (Reg. UE 1169/11)", "Allergens (EU 1169/11)", "Alerjenler (AB 1169/11)")}</div>
     <div class="row wrap mt8" style="gap:6px">${d.alg.length ? d.alg.map(a => `<span class="chip" style="min-height:30px;font-size:.8rem">${esc(algName(a))}</span>`).join("") : `<span class="body-md">${L("Nessuno dichiarato", "None declared", "Belirtilmiş alerjen yok")}</span>`}</div>${d.algTbd ? `<div class="body-md mt8" style="color:var(--terra-ink)">${ic("info")} ${L("Allergeni da confermare con la cucina: chiedi al personale.", "Allergens to be confirmed by the kitchen — ask the staff.", "Alerjen bilgisi mutfakla doğrulanacak; lütfen personele sorun.")}</div>` : ""}
     ${d.opt ? `<div class="card mt24"><div class="label">${d.opt === "porz" ? L("Porzione", "Portion", "Porsiyon") : L("Impasto", "Dough", "Hamur")}</div><div class="col mt12">${OPTS[d.opt].map(o => `<button class="radio ${ui.dopt === o[0] ? "on" : ""}" data-a="dopt" data-v="${o[0]}"><span class="rb"></span><span class="grow">${optLabel(d, o[0])}</span><span class="body-md">${o[2] ? "+" + eur(o[2]) : L("Incluso", "Included", "Dahil")}</span></button>`).join("")}</div></div>` : ""}
@@ -993,6 +1013,12 @@ function sTablesWide() {
     <div class="row wrap between"><div class="legend"><span><i style="background:var(--raised);border:1px solid var(--stone)"></i>${L("Libero", "Free", "Boş")}</span><span><i style="background:var(--bosco)"></i>${L("Occupato", "Seated", "Dolu")}</span><span><i style="background:#F3DED3"></i>${L("Riservato", "Reserved", "Rezerve")}</span></div><span class="label">${seated.length}/${S.tables.length} · ${seated.reduce((a, t) => a + t.guests, 0)} ${L("coperti", "covers", "kişi")}</span></div>
     ${["dehors", "sala"].map(a => `<div class="h2 mt16">${areaName(a)}</div><div class="mt8">${planHTML(a, "staff")}</div>`).join("")}
   </div><aside aria-label="${L("Dettaglio tavolo", "Table detail", "Masa detayı")}">${sTableBody(ui.selT)}</aside></div>`);
+}
+function dishMedia(d) {
+  const v = d.explode && (ui.dview === "x" || !d.poster) ? "x" : "p";
+  const src = v === "x" ? d.explode : d.poster;
+  return `${d.explode && d.poster ? `<div class="seg" style="margin-bottom:8px" role="tablist" aria-label="${L("Vista", "View", "Görünüm")}">${[["p", "restaurant", L("Il piatto", "The dish", "Tabak")], ["x", "layers", L("Ingredienti", "Ingredients", "İçindekiler")]].map(([k, i, n]) => `<button role="tab" aria-selected="${v === k}" class="${v === k ? "on" : ""}" data-a="dview" data-v="${k}">${ic(i)}${n}</button>`).join("")}</div>` : ""}
+    <div class="pimg media"><img src="${src}" alt="${esc(d.name)}${v === "x" ? " · " + L("ingredienti", "ingredients", "içindekiler") : ""}" onerror="this.closest('.pimg').remove()"></div>`;
 }
 function sTables() {
   if (wide()) return sTablesWide();
@@ -1487,7 +1513,7 @@ function sheetHTML() {
   if (s.k === "waitlist") c = `<div class="h2">${L("Lista d'attesa", "Waitlist", "Bekleme listesi")}</div><p class="body-md mt8">${dayLabel(ui.res.date)} · ${ui.res.service} · ${ui.res.pax} ${L("pers.", "ppl", "kişi")}</p><div class="field mt12"><label for="wn">${L("Nome", "Name", "Ad")}</label><input id="wn" class="input" value="${esc(ui.res.name)}"></div><div class="field mt12"><label for="wp">${L("Telefono", "Phone", "Telefon")}</label><input id="wp" class="input" type="tel" value="${esc(ui.res.phone)}"></div><button class="btn primary block mt16" data-a="wlOk">${ic("sms")}${L("Avvisami via SMS", "Text me", "SMS ile haber ver")}</button>`;
   if (s.k === "dish") { const d = s.d; c = `<div class="h2">${s.isNew ? L("Nuovo piatto", "New dish", "Yeni ürün") : L("Modifica piatto", "Edit dish", "Ürünü düzenle")}</div>
     <div class="field mt12"><label for="ed-name">${L("Nome", "Name", "Ad")}</label><input id="ed-name" class="input" value="${esc(d.name)}"></div>
-    <div class="row mt12" style="gap:12px">${d.img ? `<img src="${d.img}" alt="" style="width:76px;height:76px;object-fit:cover;border-radius:4px">` : `<div class="thumb c-${d.cat}">${ic(CATS.find(c2 => c2[0] === d.cat)[2])}</div>`}<div class="col" style="gap:6px;align-items:flex-start"><label class="btn secondary sm" style="cursor:pointer">${ic("photo_camera")}${d.img ? L("Cambia foto", "Change photo", "Fotoğrafı değiştir") : L("Carica foto", "Upload photo", "Fotoğraf yükle")}<input type="file" accept="image/*" data-ch="edImg" hidden></label>${d.img ? `<button class="btn ghost sm" style="color:var(--err)" data-a="edImgDel">${ic("delete")}${L("Rimuovi", "Remove", "Kaldır")}</button>` : ""}<span class="body-md" style="font-size:.75rem">${L("Ridotta a 640 px · senza foto si usa l'illustrazione", "Resized to 640 px · without a photo the illustration is used", "640 px'e küçültülür · fotoğraf yoksa çizim kullanılır")}</span></div></div>
+    <div class="row mt12" style="gap:12px">${d.img ? `<img src="${d.img}" alt="" style="width:76px;height:76px;object-fit:cover;border-radius:4px">` : `<div class="thumb c-${d.cat}">${ic(CATS.find(c2 => c2[0] === d.cat)[2])}</div>`}<div class="col" style="gap:6px;align-items:flex-start"><label class="btn secondary sm" style="cursor:pointer">${ic("photo_camera")}${d.img ? L("Cambia foto", "Change photo", "Fotoğrafı değiştir") : L("Carica foto", "Upload photo", "Fotoğraf yükle")}<input type="file" accept="image/*" data-ch="edImg" hidden></label>${d.img ? `<button class="btn ghost sm" style="color:var(--err)" data-a="edImgDel">${ic("delete")}${L("Rimuovi", "Remove", "Kaldır")}</button>` : ""}<label class="btn secondary sm" style="cursor:pointer">${ic("layers")}${d.explode ? L("Cambia esploso", "Change exploded view", "Patlatılmış görseli değiştir") : L("Carica esploso ingredienti", "Upload exploded view", "Patlatılmış görsel yükle")}<input type="file" accept="image/*" data-ch="edX" hidden></label>${d.explode ? `<button class="btn ghost sm" style="color:var(--err)" data-a="edXDel">${ic("delete")}${L("Rimuovi esploso", "Remove exploded view", "Patlatılmış görseli kaldır")}</button>` : ""}<span class="body-md" style="font-size:.75rem">${L("Ridotta a 640 px · senza foto si usa l'illustrazione", "Resized to 640 px · without a photo the illustration is used", "640 px'e küçültülür · fotoğraf yoksa çizim kullanılır")}</span></div></div>
     <div class="grid2 mt12"><div class="field"><label for="ed-price">${L("Prezzo €", "Price €", "Fiyat €")}</label><input id="ed-price" class="input" inputmode="decimal" value="${String(d.price).replace(".", ",")}"></div><div class="field"><label for="ed-cat">${L("Categoria", "Category", "Kategori")}</label><select id="ed-cat" class="input">${CATS.map(c2 => `<option value="${c2[0]}" ${d.cat === c2[0] ? "selected" : ""}>${c2[1]()}</option>`).join("")}</select></div></div>
     <div class="field mt12"><label for="ed-st">${L("Postazione", "Station", "İstasyon")}</label><select id="ed-st" class="input">${["cucina", "pizzeria", "bar"].map(x => `<option value="${x}" ${d.st === x ? "selected" : ""}>${stName(x)}</option>`).join("")}</select></div>
     ${["IT", "EN", "TR"].map((l, i) => `<div class="field mt12"><label for="ed-d${i}">${L("Descrizione", "Description", "Açıklama")} ${l}</label><input id="ed-d${i}" class="input" value="${esc(d.d[i])}"></div>`).join("")}
@@ -1735,6 +1761,9 @@ Object.assign(A, {
   fire: v => { const [t, c] = v.split("|"); tOrders(t).forEach(o => o.items.forEach(i => { if (i.held && i.course === +c) { i.held = false; i.firedAt = now(); } })); save(); toast(courseName(+c) + " · " + L("marcia!", "fired!", "başlatıldı")); },
   /* brand, floor plan, tablet */
   poster: v => { ui.sheet = { k: "poster", v }; render(); },
+  dview: v => { ui.dview = v; render(); const m = document.querySelector(".media"); if (m) m.scrollIntoView({ block: "nearest", behavior: "smooth" }); },
+  openX: v => { ui.dviewNext = "x"; ui.dish = null; go("#/guest/dish/" + v); },
+  edXDel: () => { keepEd(); delete ui.sheet.d.explode; render(); },
   edImgDel: () => { keepEd(); delete ui.sheet.d.img; render(); },
   brandLogoDel: () => { S.brand.logo = null; commit(); },
   brandColor: v => { S.brand.primary = v; commit(); },
@@ -1779,6 +1808,7 @@ document.addEventListener("input", e => {
 document.addEventListener("change", e => {
   const k = e.target.dataset.ch; if (!k) return;
   if (k === "resSt") { S.reservations.find(r => r.code === e.target.dataset.v).status = e.target.value; commit(); toast(L("Stato aggiornato", "Status updated", "Durum güncellendi")); }
+  if (k === "edX" && e.target.files[0]) { keepEd(); readImg(e.target.files[0], 900, "image/jpeg", u => { ui.sheet.d.explode = u; render(); toast(L("Esploso caricato", "Exploded view added", "Patlatılmış görsel eklendi")); }); }
   if (k === "edImg" && e.target.files[0]) { keepEd(); readImg(e.target.files[0], 640, "image/jpeg", u => { ui.sheet.d.img = u; render(); }); }
   if (k === "brandLogo" && e.target.files[0]) readImg(e.target.files[0], 256, "image/png", u => { S.brand.logo = u; if (save()) { render(); toast(L("Logo aggiornato", "Logo updated", "Logo güncellendi")); } else S.brand.logo = null; });
   if (k === "plan") { S.tenants.find(t => t.id === e.target.dataset.v).plan = e.target.value; commit(); }

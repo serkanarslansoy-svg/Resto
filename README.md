@@ -35,14 +35,14 @@ Girişler yalnızca demo amaçlıdır; doğrulama tarayıcıda yapılır.
 ## Veriler ve varsayımlar
 
 - **Gerçek:** isim, adres, telefon, çalışma saatleri, mutfak türü ve hizmetler Google Maps kaydı ile herkese açık listelerden (italia.it, Sluurpy) alındı. Yemek adları herkese açık yorumlardan derlendi.
-- **Restorandan:** afişler, logo ve afişlerdeki yemekler (Tagliere di salumi e formaggi, Spaghetti cozze e vongole, Brasato al Barbera, Tagliata di vitello alle erbe, Filetto in riduzione al Vermouth). Bu yemeklerin fiyatları ve alerjenleri örnektir.
+- **Restorandan:** afişler, patlatılmış içindekiler görselleri, logo ve afişlerdeki yemekler (Tagliere di salumi e formaggi, Spaghetti cozze e vongole, Brasato al Barbera, Tagliata di vitello alle erbe, Filetto in riduzione al Vermouth, Stinco di vitello alle noci, Milanese di vitello, Grigliata di mare). İçindekiler listeleri görsellerden alındı; fiyatlar ve alerjenler örnektir.
 - **Örnek:** fiyatlar, masa düzeni, personel isimleri, siparişler, raporlardaki 7/30 günlük veriler ve diğer "demo" işletmeler. Restoranla doğrulanmalıdır.
 - Cumartesi çalışma saatleri kaynaklarda net değildi.
 
 ## Klasörler
 
 - `index.html`: prototipin tamamı (tek dosya).
-- `assets/`: restoranın afişleri (`posters/`, menüde ve yemek sayfalarında olduğu gibi kullanılır) ve logo (`brand/`). `index.html` bu klasörle birlikte açılmalıdır; görsel bulunamazsa çizim kullanılır.
+- `assets/`: restoranın afişleri (`posters/`, menüde ve yemek sayfalarında olduğu gibi kullanılır), içindekilerin patlatılmış görselleri (`exploded/`, yemek sayfasında "Tabak / İçindekiler" geçişiyle) ve logo (`brand/`). `index.html` bu klasörle birlikte açılmalıdır; görsel bulunamazsa çizim kullanılır.
 - `docs/DESIGN-ivory.md`: fildişi tasarım sistemi (renk token'ları, kontrast notları, bileşen kuralları, Stitch istemi).
 - `docs/design-review.md`: Stitch projesinin tasarım incelemesi.
 - `design/stitch-export/`: Google Stitch'ten dışa aktarılan orijinal 12 ekran ve tasarım sistemi.
@@ -56,6 +56,7 @@ node tests/e2e.js  "$PWD/index.html" /tmp/shots
 node tests/e2e2.js "$PWD/index.html" /tmp/shots
 node tests/e2e3.js "$PWD/index.html" /tmp/shots
 node tests/e2e4.js "$PWD/index.html" /tmp/shots <png-klasörü>
+node tests/e2e5.js "$PWD/index.html" /tmp/shots
 ```
 
 `e2e4.js` için klasörde `dish.png` ve `logo.png` bulunmalıdır. Her test sorunsuz geçince `OK` yazar.

@@ -23,7 +23,7 @@ const F = 'file://' + process.argv[2], OUT = process.argv[3];
   await m.locator('[data-a=soNote]').first().click(); await W(); await m.click('[data-a=soNoteAdd]'); await m.click('[data-a=soNoteOk]'); await W();
   await m.screenshot({ path: OUT + '/s-order.png', fullPage: true });
   await m.click('[data-a=soSend]'); await W(300);
-  const st = await m.evaluate(() => { const S = JSON.parse(localStorage.getItem('resto.palatino.v3')); const o = S.orders[S.orders.length - 1]; return o.items.map(i => i.dishId + ':' + i.course + ':' + i.held).join(','); });
+  const st = await m.evaluate(() => { const S = JSON.parse(localStorage.getItem('resto.palatino.v4')); const o = S.orders[S.orders.length - 1]; return o.items.map(i => i.dishId + ':' + i.course + ':' + i.held).join(','); });
   if (st !== 'a1:1:false,s2:2:true,d2:3:true,v2:0:false') errs.push('held logic ' + st);
   const fires = await m.locator('[data-a=fire]').count(); if (fires < 2) errs.push('fire buttons ' + fires);
   await m.screenshot({ path: OUT + '/s-table-fire.png', fullPage: true });
@@ -40,7 +40,7 @@ const F = 'file://' + process.argv[2], OUT = process.argv[3];
   await m.click('[data-a=splitMode][data-v="D4|equal"]'); await W(); await m.click('[data-a=splitN][data-v="D4|1"]'); await W();
   const amounts = await m.$$eval('.sheet .list .price', e => e.map(x => x.textContent));
   const sum = amounts.reduce((a, t) => a + parseFloat(t.replace('€', '').replace(',', '.')), 0);
-  const total = await m.evaluate(() => { const S = JSON.parse(localStorage.getItem('resto.palatino.v3')); return null; });
+  const total = await m.evaluate(() => { const S = JSON.parse(localStorage.getItem('resto.palatino.v4')); return null; });
   if (amounts.length !== 3) errs.push('equal parts ' + amounts.length);
   if (!(await m.locator('.sheet [data-a=paid][disabled]').count())) errs.push('close should be disabled before all paid');
   for (const btn of await m.locator('.sheet [data-a=payShare]').all()) { await btn.click(); await W(60); }

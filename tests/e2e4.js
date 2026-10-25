@@ -11,7 +11,7 @@ const F = 'file://' + process.argv[2], OUT = process.argv[3], IMG = process.argv
   await d.setInputFiles('.sheet input[data-ch=edImg]', IMG + '/dish.png'); await d.waitForTimeout(500);
   if (!(await d.locator('.sheet img').count())) errs.push('no preview');
   await d.click('[data-a=edSave]'); await d.waitForTimeout(150);
-  const img = await d.evaluate(() => { const S = JSON.parse(localStorage.getItem('resto.palatino.v3')); const i = S.menu.find(x => x.id === 'p1').img; return i ? i.length : 0; });
+  const img = await d.evaluate(() => { const S = JSON.parse(localStorage.getItem('resto.palatino.v4')); const i = S.menu.find(x => x.id === 'p1').img; return i ? i.length : 0; });
   if (img < 1000 || img > 200000) errs.push('img size ' + img);
   // brand
   await d.goto(F + '#/admin/settings'); await d.waitForTimeout(150);
@@ -24,11 +24,11 @@ const F = 'file://' + process.argv[2], OUT = process.argv[3], IMG = process.argv
   await d.goto(F + '#/admin/tables'); await d.waitForTimeout(200);
   const n = d.locator('#pn-T1'); const bb = await n.boundingBox(); const plan = await d.locator('.plan[data-area=sala]').boundingBox();
   await d.mouse.move(bb.x + bb.width / 2, bb.y + bb.height / 2); await d.mouse.down(); await d.mouse.move(plan.x + plan.width * .5, plan.y + plan.height * .5, { steps: 6 }); await d.mouse.up(); await d.waitForTimeout(150);
-  const pos = await d.evaluate(() => { const S = JSON.parse(localStorage.getItem('resto.palatino.v3')); const t = S.tables.find(x => x.id === 'T1'); return [t.x, t.y]; });
+  const pos = await d.evaluate(() => { const S = JSON.parse(localStorage.getItem('resto.palatino.v4')); const t = S.tables.find(x => x.id === 'T1'); return [t.x, t.y]; });
   if (Math.abs(pos[0] - 50) > 3 || Math.abs(pos[1] - 50) > 3) errs.push('drag pos ' + pos);
   await d.click('[data-a=shape][data-v="T1|long"]'); await d.waitForTimeout(100);
   await d.focus('#pn-T1'); await d.keyboard.press('ArrowRight'); await d.waitForTimeout(100);
-  const pos2 = await d.evaluate(() => JSON.parse(localStorage.getItem('resto.palatino.v3')).tables.find(x => x.id === 'T1').x); if (pos2 !== pos[0] + 2) errs.push('nudge ' + pos2);
+  const pos2 = await d.evaluate(() => JSON.parse(localStorage.getItem('resto.palatino.v4')).tables.find(x => x.id === 'T1').x); if (pos2 !== pos[0] + 2) errs.push('nudge ' + pos2);
   await d.screenshot({ path: OUT + '/plan-editor.png', fullPage: true });
   // tablet staff
   const t = await page(1180, 820); await t.goto(F + '#/staff/tables'); await t.waitForTimeout(150); await t.click('[data-a=pickStaff][data-v=s1]'); await t.keyboard.type('1111'); await t.waitForTimeout(300);
