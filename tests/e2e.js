@@ -61,7 +61,7 @@ const OUT = process.argv[3];
   d.on('pageerror', e => errs.push('d pageerror ' + e.message));
   await d.goto(F + '#/admin/dash'); await d.waitForTimeout(200); await d.click('[data-a=aFill]'); await d.click('[data-a=aLogin]'); await d.waitForTimeout(300); await d.screenshot({ path: OUT + '/a-dash.png', fullPage: true });
   await d.goto(F + '#/admin/menu'); await d.click('[data-a=editDish][data-v=a1]'); await d.fill('#ed-price', '14,5'); await d.click('[data-a=edSave]'); await d.waitForTimeout(100);
-  const pr = await d.evaluate(() => JSON.parse(localStorage.getItem('resto.palatino.v2')).menu.find(x => x.id === 'a1').price); if (pr !== 14.5) errs.push('price edit ' + pr);
+  const pr = await d.evaluate(() => JSON.parse(localStorage.getItem('resto.palatino.v3')).menu.find(x => x.id === 'a1').price); if (pr !== 14.5) errs.push('price edit ' + pr);
   await d.screenshot({ path: OUT + '/a-menu.png' });
   await d.goto(F + '#/saas/overview'); await d.waitForTimeout(200); await d.click('[data-a=pFill]'); await d.click('[data-a=pLogin]'); await d.fill('#p2','246810'); await d.click('[data-a=pLogin]'); await d.waitForTimeout(300); await d.screenshot({ path: OUT + '/p-overview.png' });
   await d.goto(F + '#/'); await d.waitForTimeout(200); await d.screenshot({ path: OUT + '/launcher.png', fullPage: true });

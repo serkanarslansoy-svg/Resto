@@ -303,7 +303,11 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--raised);border:1p
 .tab2 aside{position:sticky;top:96px;max-height:calc(100dvh - 180px);overflow:auto;background:var(--canvas);border:1px solid var(--stone);border-radius:var(--r-lg);padding:14px}
 .tab2 .backbtn{display:none}
 .logo img{width:100%;height:100%;object-fit:cover;border-radius:inherit;background:#fff}
-.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.posters{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 -16px;padding:0 16px 4px}
+.posters::-webkit-scrollbar{display:none}
+.poster{flex:none;width:62%;max-width:240px;aspect-ratio:4/5.6;border-radius:var(--r-lg);overflow:hidden;scroll-snap-align:start;background:#2C1806;border:1px solid var(--stone)}
+.poster img{width:100%;height:100%;object-fit:cover;display:block}
 @media(max-width:900px){.grid-plans{grid-template-columns:1fr}}
 
 /* folio */
@@ -340,7 +344,7 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--raised);border:1p
    RESTO · Palatino — clickable app prototype (design review)
    All roles share one demo store (localStorage, synced across tabs).
    ============================================================ */
-const KEY = "resto.palatino.v2";
+const KEY = "resto.palatino.v3";
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -415,8 +419,8 @@ const optDelta = (d, k) => { if (!d.opt) return 0; const o = OPTS[d.opt].find(x 
 const SEED_MENU = [
   { id: "a1", cat: "anti", st: "cucina", name: "Vitello tonnato", price: 13, alg: ["uova", "pesce", "sen"], tags: ["tradizione"],
     d: ["Girello di vitello rosa, salsa tonnata e capperi.", "Pink veal round, tuna sauce and capers.", "Pembe dana, ton balıklı sos ve kapari."] },
-  { id: "a2", cat: "anti", st: "cucina", name: "Antipasto piemontese", price: 16, alg: ["lat", "glu"], tags: ["condividere"],
-    d: ["Tagliere di salumi e formaggi del territorio con pane della casa.", "Local cured meats and cheeses with house bread.", "Yöresel şarküteri ve peynir tabağı, ev yapımı ekmekle."] },
+  { id: "a2", cat: "anti", st: "cucina", name: "Tagliere di salumi e formaggi", price: 16, alg: ["lat", "glu"], tags: ["condividere"], img: "assets/dishes/tagliere.jpg", poster: "assets/posters/tagliere.jpg",
+    d: ["Salumi e formaggi del territorio con pane della casa.", "Local cured meats and cheeses with house bread.", "Yöresel şarküteri ve peynir tabağı, ev yapımı ekmekle."] },
   { id: "a3", cat: "anti", st: "cucina", name: "Tris di tomini", price: 11, alg: ["lat"], tags: ["veg", "gf"],
     d: ["Tomini al verde, al rosso ed elettrici.", "Tomino cheeses: green sauce, red sauce and spicy.", "Üç çeşit tomino peyniri: yeşil sos, kırmızı sos, acılı."] },
   { id: "a4", cat: "anti", st: "cucina", name: "Insalata di polpo e patate", price: 14, alg: ["mol"], tags: ["gf"],
@@ -425,7 +429,7 @@ const SEED_MENU = [
     d: ["Pasta ripiena fatta a mano, sugo d'arrosto ristretto.", "Hand-made filled pasta with roast jus.", "El yapımı dolgulu makarna, rosto suyu ile."] },
   { id: "p2", cat: "primi", st: "cucina", name: "Agnolotti al Castelmagno", price: 15, alg: ["glu", "uova", "lat"], tags: ["casa"], opt: "porz",
     d: ["Agnolotti con fonduta di Castelmagno DOP.", "Agnolotti with Castelmagno PDO cheese fondue.", "Castelmagno peyniri fondüsü ile agnolotti."] },
-  { id: "p3", cat: "primi", st: "cucina", name: "Spaghetti cozze e vongole", price: 16, alg: ["glu", "mol"], tags: [], opt: "porz",
+  { id: "p3", cat: "primi", st: "cucina", name: "Spaghetti cozze e vongole", price: 16, alg: ["glu", "mol"], tags: [], opt: "porz", img: "assets/dishes/spaghetti-cozze-vongole.jpg", poster: "assets/posters/spaghetti-cozze-vongole.jpg",
     d: ["Cozze, vongole veraci, aglio e prezzemolo.", "Mussels, clams, garlic and parsley.", "Midye, akivades, sarımsak ve maydanoz."] },
   { id: "p4", cat: "primi", st: "cucina", name: "Paccheri gorgonzola e salsiccia", price: 14, alg: ["glu", "lat"], tags: [], opt: "porz",
     d: ["Crema di gorgonzola e salsiccia di Bra.", "Gorgonzola cream and Bra sausage.", "Gorgonzola kreması ve Bra sosisi."] },
@@ -435,6 +439,12 @@ const SEED_MENU = [
     d: ["Tagli misti di manzo bollito con bagnetto verde.", "Mixed boiled beef cuts with green sauce.", "Karışık haşlanmış dana, yeşil sos (bagnetto) ile."] },
   { id: "s2", cat: "secondi", st: "cucina", name: "Fritto di mare con gamberi", price: 20, alg: ["glu", "cro", "mol", "pesce"], tags: [],
     d: ["Calamari, gamberi e pesce fritti, limone.", "Fried squid, prawns and fish with lemon.", "Kızarmış kalamar, karides ve balık, limonla."] },
+  { id: "s3", cat: "secondi", st: "cucina", name: "Brasato al Barbera", price: 19, alg: ["sed", "sol"], algTbd: true, tags: ["tradizione"], img: "assets/dishes/brasato-barbera.jpg", poster: "assets/posters/brasato-barbera.jpg",
+    d: ["Manzo brasato a lungo nel Barbera, patate al forno al rosmarino.", "Beef slow-braised in Barbera wine, rosemary roast potatoes.", "Barbera şarabında uzun süre pişmiş dana, biberiyeli fırın patates."] },
+  { id: "s4", cat: "secondi", st: "cucina", name: "Tagliata di vitello alle erbe", price: 21, alg: [], algTbd: true, tags: [], img: "assets/dishes/tagliata-vitello.jpg", poster: "assets/posters/tagliata-vitello.jpg",
+    d: ["Profumata al limone, con jus al ginepro e carote saltate.", "Lemon-scented, with juniper jus and sautéed carrots.", "Limon aromalı, ardıç sosu ve sote havuçla."] },
+  { id: "s5", cat: "secondi", st: "cucina", name: "Filetto in riduzione al Vermouth", price: 26, alg: ["lat", "sol"], algTbd: true, tags: [], img: "assets/dishes/filetto-vermouth.jpg", poster: "assets/posters/filetto-vermouth.jpg",
+    d: ["Vitello con crema di topinambur, polvere di porcini e cicoria.", "Veal with Jerusalem artichoke cream, porcini dust and chicory.", "Yer elması kreması, porçini tozu ve hindiba ile dana fileto."] },
   { id: "z1", cat: "pizze", st: "pizzeria", name: "Margherita", price: 8, alg: ["glu", "lat"], tags: ["veg"], opt: "imp",
     d: ["Pomodoro, fior di latte, basilico.", "Tomato, fior di latte, basil.", "Domates, fior di latte, fesleğen."] },
   { id: "z2", cat: "pizze", st: "pizzeria", name: "Diavola", price: 10, alg: ["glu", "lat"], tags: ["piccante"], opt: "imp",
@@ -494,7 +504,7 @@ function seed() {
     { id: uid(), no: 41, table: "T5", by: "Sala", ts: t - 3 * MIN, note: L("1 ospite celiaco", "1 coeliac guest", "1 çölyak misafir"), items: [it("p1", 2, "new"), it("z1", 1, "new", { opt: "sg", note: "celiaco" }), it("b1", 2, "new"), it("d1", 2, "new", { held: true })] }
   ];
   return {
-    v: 2, splits: {}, adminPw: "Palatino2026", menu: SEED_MENU.map(d => ({ ...d, avail: d.id !== "s1" })), tables, orders, seq: 41,
+    v: 3, brand: { primary: "#172C2A", logo: "assets/brand/palatino-mark.jpg", tagline: "Ristorante · Pizzeria" }, splits: {}, adminPw: "Palatino2026", menu: SEED_MENU.map(d => ({ ...d, avail: d.id !== "s1" })), tables, orders, seq: 41,
     requests: [
       { id: uid(), table: "T3", type: "bill", ts: t - 3 * MIN, status: "open" },
       { id: uid(), table: "D2", type: "water", ts: t - 5 * MIN, status: "ack", by: "Luca" }
@@ -534,7 +544,7 @@ function seed() {
   };
 }
 let S;
-function load() { try { const j = JSON.parse(lsGet(KEY)); if (j && j.v === 2) return j; } catch (e) {} return null; }
+function load() { try { const j = JSON.parse(lsGet(KEY)); if (j && j.v === 3) return j; } catch (e) {} return null; }
 function save() { const ok = lsSet(KEY, JSON.stringify(S)); if (!ok) setTimeout(() => toast(L("Memoria del browser piena: usa meno foto", "Browser storage full — use fewer photos", "Tarayıcı depolaması dolu — daha az fotoğraf kullanın")), 0); return ok; }
 S = load() || seed();
 window.addEventListener("storage", e => { if (e.key === KEY) { const n = load(); if (n) { S = n; render(); } } });
@@ -580,9 +590,9 @@ function slotLeft(date, time, area) {
 
 /* ---------------- icons / atoms ---------------- */
 const ic = (n, cls = "") => `<span class="ms ${cls}" aria-hidden="true">${n}</span>`;
-const thumb = (d, cls = "") => { const c = CATS.find(x => x[0] === d.cat); return `<div class="thumb c-${d.cat} ${cls} ${d.avail ? "" : "soldout"}">${d.img ? `<img src="${d.img}" alt="">` : ic(c[2])}</div>`; };
-const BRAND = [["#172C2A", "Bosco", "#203A38", "rgba(23,44,42,.08)"], ["#5A1E2B", "Bordeaux", "#6E2A38", "rgba(90,30,43,.08)"], ["#1F3A5F", "Blu Savoia", "#2A4A75", "rgba(31,58,95,.08)"], ["#2E2A26", "Antracite", "#3D3833", "rgba(46,42,38,.08)"]];
-const logoInner = (fallback = "P") => S.brand && S.brand.logo ? `<img src="${S.brand.logo}" alt="${R.name}">` : fallback;
+const thumb = (d, cls = "") => { const c = CATS.find(x => x[0] === d.cat); return `<div class="thumb c-${d.cat} ${cls} ${d.avail ? "" : "soldout"}">${ic(c[2])}${d.img ? `<img src="${d.img}" alt="" loading="lazy" onerror="this.remove()">` : ""}</div>`; };
+const BRAND = [["#172C2A", "Bosco", "#203A38", "rgba(23,44,42,.08)"], ["#3A2A1F", "Noce", "#4A3628", "rgba(58,42,31,.08)"], ["#5A1E2B", "Bordeaux", "#6E2A38", "rgba(90,30,43,.08)"], ["#1F3A5F", "Blu Savoia", "#2A4A75", "rgba(31,58,95,.08)"], ["#2E2A26", "Antracite", "#3D3833", "rgba(46,42,38,.08)"]];
+const logoInner = (fallback = "P") => S.brand && S.brand.logo ? `<img src="${S.brand.logo}" alt="${R.name}" onerror="this.replaceWith('${fallback}')">` : fallback;
 function readImg(file, max, type, cb) {
   const fr = new FileReader();
   fr.onload = () => { const im = new Image(); im.onload = () => { const k = Math.min(1, max / Math.max(im.width, im.height)); const c = document.createElement("canvas"); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); cb(c.toDataURL(type, .8)); }; im.onerror = () => toast(L("Immagine non valida", "Invalid image", "Geçersiz görsel")); im.src = fr.result; };
@@ -624,6 +634,7 @@ function vLauncher() {
       ${langSwitch()}
     </div>
     <div class="hero mt24" style="min-height:220px">${porticoSVG}
+      <img src="assets/brand/palatino-wordmark.jpg" alt="Palatino Ristorante Pizzeria" style="width:min(260px,70%);border-radius:4px;margin-bottom:14px" onerror="this.remove()">
       <div class="label" style="color:#F1B08F">${L("Torino · Quadrilatero", "Turin · city centre", "Torino · şehir merkezi")}</div>
       <div class="h-display" style="color:#fff;margin-top:6px">${R.full}</div>
       <div class="row wrap mt12" style="gap:14px;color:#C6D3D0;font-size:.88rem">
@@ -698,9 +709,11 @@ function gJoin() {
 }
 
 function gHome() {
-  const s = S.session; const sp = dish("p1"); const today = new Date().getDay();
+  const s = S.session; const sp = dish("s3") || dish("p1"); const today = new Date().getDay();
+  const posters = S.menu.filter(d => d.poster && d.avail);
+  const heroImg = dish("a2") && dish("a2").img;
   return guestShell("home", L("Benvenuti", "Welcome", "Hoş geldiniz"), `
-    <div class="hero">${porticoSVG}
+    <div class="hero" ${heroImg ? `style="background:linear-gradient(180deg,rgba(20,14,8,.15) 0%,rgba(20,14,8,.88) 78%),url('${heroImg}') center 40%/cover,var(--bosco)"` : ""}>${heroImg ? "" : porticoSVG}
       <div class="label" style="color:#F1B08F">${esc(S.brand.tagline) || L("Cucina piemontese · Pizzeria", "Piedmontese kitchen · Pizzeria", "Piemonte mutfağı · Pizzeria")}</div>
       <div class="h-display" style="color:#fff;font-size:1.9rem;margin-top:4px">${L("Ciao", "Hi", "Merhaba")} ${esc(s.name)},<br>${L("benvenuti al Palatino", "welcome to Palatino", "Palatino'ya hoş geldiniz")}</div>
     </div>
@@ -711,6 +724,8 @@ function gHome() {
     <button class="card mt12 row" style="width:100%;text-align:left;gap:12px" data-go="#/guest/dish/${sp.id}">
       ${thumb(sp)}<div class="grow"><div class="label terra">${ic("star")} ${L("Specialità della casa", "House speciality", "Şefin önerisi")}</div><div class="t-sm mt8">${sp.name}</div><div class="body-md ellip">${esc(sp.d[ui.lang === "it" ? 0 : ui.lang === "en" ? 1 : 2])}</div></div><div class="price" style="color:var(--terra-ink)">${eur(sp.price)}</div>
     </button>
+    ${posters.length ? `<div class="row between mt24"><div class="h2">${L("Dalla nostra cucina", "From our kitchen", "Mutfağımızdan")}</div><span class="label">${posters.length}</span></div>
+    <div class="posters mt12">${posters.map(d => `<button class="poster" data-go="#/guest/dish/${d.id}" aria-label="${esc(d.name)}"><img src="${d.poster}" alt="${esc(d.name)}" loading="lazy" onerror="this.closest('.poster').remove()"></button>`).join("")}</div>` : ""}
     <button class="card dark mt12 row" style="width:100%;text-align:left;gap:14px;padding:20px" data-go="#/guest/menu">
       <div class="grow"><span class="tag" style="background:#FEA680;color:#4A1E0C">${L("Ordine diretto", "Order direct", "Doğrudan sipariş")}</span><div class="h2 mt8" style="color:#fff">${L("Sfoglia il menù e ordina", "Browse the menu & order", "Menüye göz at ve sipariş ver")}</div><div class="body-md" style="color:#A9BDB9">${L("Le comande arrivano direttamente in cucina e in pizzeria.", "Orders go straight to the kitchen and pizza oven.", "Siparişler doğrudan mutfağa ve pizza fırınına gider.")}</div></div>
       <span class="iconbtn" style="background:rgba(255,255,255,.1);color:#fff">${ic("arrow_forward")}</span>
@@ -782,11 +797,11 @@ function gDish(id) {
   const body = `${back}
     <div class="mt8">${thumb(d, "lg")}</div>
     <div class="row wrap mt16" style="gap:6px">${d.tags.map(t => `<span class="tag ${t === "tradizione" || t === "casa" ? "terra" : "stone"}">${tagName(t)}</span>`).join("")}</div>
-    <div class="h-display mt8" style="font-size:1.8rem">${esc(d.name)}</div>
+    <div class="h-display mt8" style="font-size:1.8rem">${esc(d.name)}</div>${d.poster ? `<button class="link mt8" style="display:inline-flex;gap:4px;align-items:center" data-a="poster" data-v="${d.id}">${ic("image")}${L("Vedi la locandina", "View the poster", "Afişi gör")}</button>` : ""}
     <div class="row mt8"><span class="price" style="font-size:1.15rem;color:var(--terra-ink)">${eur(d.price)}</span><span class="body-md">${L("IVA inclusa · coperto a parte", "VAT incl. · cover extra", "KDV dahil · kuver ayrıca")}</span></div>
     <p class="serif mt12" style="font-size:1.1rem;font-style:italic;color:var(--ink-2)">“${esc(d.d[li])}”</p>
     <div class="label mt24">${L("Allergeni (Reg. UE 1169/11)", "Allergens (EU 1169/11)", "Alerjenler (AB 1169/11)")}</div>
-    <div class="row wrap mt8" style="gap:6px">${d.alg.length ? d.alg.map(a => `<span class="chip" style="min-height:30px;font-size:.8rem">${esc(algName(a))}</span>`).join("") : `<span class="body-md">${L("Nessuno dichiarato", "None declared", "Belirtilmiş alerjen yok")}</span>`}</div>
+    <div class="row wrap mt8" style="gap:6px">${d.alg.length ? d.alg.map(a => `<span class="chip" style="min-height:30px;font-size:.8rem">${esc(algName(a))}</span>`).join("") : `<span class="body-md">${L("Nessuno dichiarato", "None declared", "Belirtilmiş alerjen yok")}</span>`}</div>${d.algTbd ? `<div class="body-md mt8" style="color:var(--terra-ink)">${ic("info")} ${L("Allergeni da confermare con la cucina: chiedi al personale.", "Allergens to be confirmed by the kitchen — ask the staff.", "Alerjen bilgisi mutfakla doğrulanacak; lütfen personele sorun.")}</div>` : ""}
     ${d.opt ? `<div class="card mt24"><div class="label">${d.opt === "porz" ? L("Porzione", "Portion", "Porsiyon") : L("Impasto", "Dough", "Hamur")}</div><div class="col mt12">${OPTS[d.opt].map(o => `<button class="radio ${ui.dopt === o[0] ? "on" : ""}" data-a="dopt" data-v="${o[0]}"><span class="rb"></span><span class="grow">${optLabel(d, o[0])}</span><span class="body-md">${o[2] ? "+" + eur(o[2]) : L("Incluso", "Included", "Dahil")}</span></button>`).join("")}</div></div>` : ""}
     ${d.cat === "primi" || d.cat === "pizze" ? `<div class="card dark mt12 row" style="gap:12px"><div class="ib" style="width:40px;height:40px;border-radius:4px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center">${ic("wine_bar")}</div><div class="grow"><div class="label">${L("Abbinamento", "Pairing", "Eşleşme")}</div><div class="t-sm" style="color:#fff">${d.cat === "pizze" ? "Barbera d'Asti DOCG" : "Langhe Nebbiolo DOC"}</div></div><button class="btn sm" style="background:#fff;color:var(--bosco)" data-a="quick" data-v="${d.cat === "pizze" ? "v1" : "v2"}">+ ${eur(d.cat === "pizze" ? 6 : 7)}</button></div>` : ""}
     <div class="field mt24"><label for="dnote">${L("Note per la cucina", "Notes for the kitchen", "Mutfak için not")}</label><textarea id="dnote" class="input" placeholder="${L("Es. senza formaggio, allergia…", "E.g. no cheese, allergy…", "Örn. peynirsiz, alerji…")}"></textarea><div class="body-md" style="font-size:.78rem">${L("Le note vengono stampate sulla comanda.", "Notes are printed on the kitchen ticket.", "Notlar mutfak fişine yazdırılır.")}</div></div>`;
@@ -1481,6 +1496,7 @@ function sheetHTML() {
   if (s.k === "allday") { const agg = {}; S.orders.forEach(o => { if (!o.closed) o.items.forEach(i => { if ((ui.kSt === "all" || i.st === ui.kSt) && !i.held && (i.status === "new" || i.status === "cooking")) agg[i.dishId + "|" + (i.opt || "")] = (agg[i.dishId + "|" + (i.opt || "")] || 0) + i.qty; }); });
     const rows = Object.entries(agg).sort((a, b) => b[1] - a[1]);
     c = `<div class="h2">${L("Totali da preparare", "All-day counts", "Hazırlanacak toplamlar")} · ${stName(ui.kSt)}</div><p class="body-md mt8">${L("Somma dei piatti aperti su tutte le comande: utile per preparare in serie.", "Open dishes summed across all tickets, for batch prep.", "Tüm fişlerdeki açık ürünlerin toplamı; toplu hazırlık için.")}</p><div class="list mt12">${rows.map(([k, n]) => { const [id, op] = k.split("|"); const d = dish(id); return `<div class="row between" style="padding:10px 0"><span class="t-sm">${esc(d.name)}${op && d.opt && OPTS[d.opt][0][0] !== op ? ` <span class="tag terra">${optLabel(d, op)}</span>` : ""}</span><span class="h2 tnum">${n}</span></div>`; }).join("") || `<div class="body-md" style="padding:10px 0">${L("Niente in coda", "Nothing queued", "Bekleyen yok")}</div>`}</div>`; }
+  if (s.k === "poster") { const d = dish(s.v); c = `<img src="${d.poster}" alt="${esc(d.name)}" style="width:100%;border-radius:8px;display:block"><button class="btn primary block mt16" data-a="closeSheet">${L("Chiudi", "Close", "Kapat")}</button>`; }
   if (s.k === "addStaff") c = `<div class="h2">${L("Nuova persona", "New person", "Yeni kişi")}</div><div class="field mt12"><label for="sn">${L("Nome", "Name", "Ad")}</label><input id="sn" class="input"></div><div class="field mt12"><label for="sr">${L("Ruolo", "Role", "Rol")}</label><select id="sr" class="input">${["waiter", "maitre", "chef", "pizza"].map(r => `<option value="${r}">${roleName(r)}</option>`).join("")}</select></div><button class="btn primary block mt16" data-a="addStaffOk">${L("Aggiungi", "Add", "Ekle")}</button>`;
   if (s.k === "kDrawer") c = `<div class="h2">${L("Disponibilità piatti", "Dish availability", "Ürün durumu")}</div><p class="body-md mt8">${L("Un piatto esaurito sparisce dagli ordini degli ospiti con proposte alternative.", "A sold-out dish shows alternatives to guests instead.", "Tükenen ürün yerine misafirlere alternatifler gösterilir.")}</p><div class="list mt12">${S.menu.filter(d => d.st !== "bar").map(d => `<div class="row between" style="padding:10px 0"><span class="t-sm">${esc(d.name)}</span><button class="switch ${d.avail ? "on" : ""}" data-a="avail" data-v="${d.id}"></button></div>`).join("")}</div>`;
   return `<div class="scrim" data-a="closeSheet"><div class="sheet" role="dialog" aria-modal="true"><div class="grab"></div>${c}</div></div>`;
@@ -1512,7 +1528,7 @@ function view() {
 }
 let lastRoute = "";
 function render(nav) {
-  if (!S.brand) S.brand = { primary: "#172C2A", logo: null, tagline: "" };
+  if (!S.brand) S.brand = { primary: "#172C2A", logo: "assets/brand/palatino-mark.jpg", tagline: "Ristorante · Pizzeria" };
   const B = BRAND.find(b => b[0] === S.brand.primary) || BRAND[0]; const rs = document.documentElement.style;
   rs.setProperty("--bosco", B[0]); rs.setProperty("--bosco-2", B[2]); rs.setProperty("--bosco-tint", B[3]);
   const a = document.activeElement; const fid = a && a.id; const sel = a && a.selectionStart;
@@ -1715,6 +1731,7 @@ Object.assign(A, {
   },
   fire: v => { const [t, c] = v.split("|"); tOrders(t).forEach(o => o.items.forEach(i => { if (i.held && i.course === +c) { i.held = false; i.firedAt = now(); } })); save(); toast(courseName(+c) + " · " + L("marcia!", "fired!", "başlatıldı")); },
   /* brand, floor plan, tablet */
+  poster: v => { ui.sheet = { k: "poster", v }; render(); },
   edImgDel: () => { keepEd(); delete ui.sheet.d.img; render(); },
   brandLogoDel: () => { S.brand.logo = null; commit(); },
   brandColor: v => { S.brand.primary = v; commit(); },
