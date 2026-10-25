@@ -356,7 +356,7 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--raised);border:1p
    RESTO · Palatino — clickable app prototype (design review)
    All roles share one demo store (localStorage, synced across tabs).
    ============================================================ */
-const KEY = "resto.palatino.v5";
+const KEY = "resto.palatino.v6";
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -423,10 +423,12 @@ const ALG = {
 const algName = k => { const a = ALG[k]; return ui.lang === "it" ? a[0] : ui.lang === "en" ? a[1] : a[2]; };
 const OPTS = {
   porz: [["std", ["Normale", "Regular", "Normal"], 0], ["abb", ["Abbondante", "Large", "Büyük porsiyon"], 3]],
+  vino: [["cal", ["Calice", "Glass", "Kadeh"], 0], ["bot", ["Bottiglia 0,75 l", "Bottle 0.75 l", "Şişe 0,75 l"], 0]],
   imp: [["cla", ["Impasto classico", "Classic dough", "Klasik hamur"], 0], ["int", ["Integrale", "Wholemeal", "Tam buğday"], 1.5], ["sg", ["Senza glutine", "Gluten-free", "Glutensiz"], 3]]
 };
+const wineP = d => `<span style="font-weight:500;font-size:.8rem;color:var(--ink-2)">${L("Calice", "Glass", "Kadeh")}</span> ${eur(d.price)} <span class="muted">·</span> <span style="font-weight:500;font-size:.8rem;color:var(--ink-2)">${L("Bottiglia", "Bottle", "Şişe")}</span> ${eur(d.bottle)}`;
 const optLabel = (d, k) => { if (!d.opt) return ""; const o = OPTS[d.opt].find(x => x[0] === k); return o ? (ui.lang === "it" ? o[1][0] : ui.lang === "en" ? o[1][1] : o[1][2]) : ""; };
-const optDelta = (d, k) => { if (!d.opt) return 0; const o = OPTS[d.opt].find(x => x[0] === k); return o ? o[2] : 0; };
+const optDelta = (d, k) => { if (!d.opt) return 0; if (d.opt === "vino") return k === "bot" ? (d.bottle || d.price) - d.price : 0; const o = OPTS[d.opt].find(x => x[0] === k); return o ? o[2] : 0; };
 
 const SEED_MENU = [
   { id: "a1", cat: "anti", st: "cucina", name: "Vitello tonnato", price: 13, alg: ["uova", "pesce", "sen"], tags: ["tradizione"], poster: "assets/posters/vitello-tonnato.jpg",
@@ -485,12 +487,12 @@ const SEED_MENU = [
     d: ["Con caramello o frutti di bosco.", "With caramel or berries.", "Karamel veya orman meyveleriyle."] },
   { id: "d3", cat: "dolci", st: "cucina", name: "Zabaione e paste di meliga", price: 7, alg: ["uova", "lat", "glu", "sol"], tags: [],
     d: ["Zabaione caldo al Moscato con biscotti di meliga.", "Warm Moscato zabaione with meliga biscuits.", "Moscato'lu sıcak zabaione, meliga bisküvileriyle."] },
-  { id: "v1", cat: "vini", st: "bar", name: "Barbera d'Asti DOCG · calice", price: 6, alg: ["sol"], tags: [],
+  { id: "v1", cat: "vini", st: "bar", name: "Barbera d'Asti DOCG", price: 6, bottle: 26, opt: "vino", alg: ["sol"], tags: [], poster: "assets/posters/barbera-asti.jpg",
     d: ["Rosso fresco e succoso, ottimo con la pizza.", "Fresh, juicy red — great with pizza.", "Taze, sulu kırmızı; pizzayla çok iyi gider."] },
-  { id: "v2", cat: "vini", st: "bar", name: "Langhe Nebbiolo DOC · calice", price: 7, alg: ["sol"], tags: [],
+  { id: "v2", cat: "vini", st: "bar", name: "Langhe Nebbiolo DOC", price: 7, bottle: 32, opt: "vino", alg: ["sol"], tags: [], poster: "assets/posters/langhe-nebbiolo.jpg",
     d: ["Elegante, per agnolotti e bollito.", "Elegant; pairs with agnolotti and bollito.", "Zarif; agnolotti ve bollito ile."] },
-  { id: "v3", cat: "vini", st: "bar", name: "Dolcetto d'Alba DOC · bottiglia", price: 24, alg: ["sol"], tags: ["condividere"],
-    d: ["Bottiglia 0,75 l da condividere.", "0.75 l bottle to share.", "Paylaşmak için 0,75 l şişe."] },
+  { id: "v3", cat: "vini", st: "bar", name: "Dolcetto d'Alba DOC", price: 5, bottle: 24, opt: "vino", alg: ["sol"], tags: ["condividere"],
+    d: ["Rosso morbido e profumato, da tutto pasto.", "Soft, fragrant red for the whole meal.", "Yumuşak ve aromatik kırmızı; her yemeğe uyar."] },
   { id: "b1", cat: "bevande", st: "bar", name: "Acqua minerale 0,75 l", price: 3, alg: [], tags: ["veg", "gf"],
     d: ["Naturale o frizzante.", "Still or sparkling.", "Sade veya maden suyu."] },
   { id: "b2", cat: "bevande", st: "bar", name: "Birra artigianale piemontese", price: 6, alg: ["glu"], tags: ["veg"],
@@ -522,15 +524,15 @@ function seed() {
   Object.assign(T("D2"), { state: "seated", guests: 2, openedAt: t - 25 * MIN });
   Object.assign(T("T6"), { state: "reserved" });
   Object.assign(T("D6"), { state: "reserved" });
-  const it = (dishId, qty, status, extra = {}) => ({ uid: uid(), dishId, qty, status, st: SEED_MENU.find(d => d.id === dishId).st, opt: SEED_MENU.find(d => d.id === dishId).opt ? (SEED_MENU.find(d => d.id === dishId).opt === "porz" ? "std" : "cla") : null, note: "", course: COURSE[SEED_MENU.find(d => d.id === dishId).cat], held: false, ...extra });
+  const it = (dishId, qty, status, extra = {}) => ({ uid: uid(), dishId, qty, status, st: SEED_MENU.find(d => d.id === dishId).st, opt: SEED_MENU.find(d => d.id === dishId).opt ? OPTS[SEED_MENU.find(d => d.id === dishId).opt][0][0] : null, note: "", course: COURSE[SEED_MENU.find(d => d.id === dishId).cat], held: false, ...extra });
   const orders = [
-    { id: uid(), no: 38, table: "T3", by: "Sala", ts: t - 55 * MIN, note: "", items: [it("z2", 2, "served"), it("z3", 1, "served"), it("v3", 1, "served")] },
+    { id: uid(), no: 38, table: "T3", by: "Sala", ts: t - 55 * MIN, note: "", items: [it("z2", 2, "served"), it("z3", 1, "served"), it("v3", 1, "served", { opt: "bot" })] },
     { id: uid(), no: 39, table: "D2", by: "Sala", ts: t - 16 * MIN, note: "", items: [it("s2", 1, "cooking"), it("p3", 1, "cooking"), it("v1", 2, "served")] },
     { id: uid(), no: 40, table: "D4", by: "Marco", ts: t - 9 * MIN, note: "", items: [it("a3", 1, "cooking"), it("v1", 2, "ready")] },
     { id: uid(), no: 41, table: "T5", by: "Sala", ts: t - 3 * MIN, note: L("1 ospite celiaco", "1 coeliac guest", "1 çölyak misafir"), items: [it("p1", 2, "new"), it("z1", 1, "new", { opt: "sg", note: "celiaco" }), it("b1", 2, "new"), it("d1", 2, "new", { held: true })] }
   ];
   return {
-    v: 5, brand: { primary: "#172C2A", logo: "assets/brand/palatino-mark.jpg", tagline: "Ristorante · Pizzeria" }, splits: {}, adminPw: "Palatino2026", menu: SEED_MENU.map(d => ({ ...d, avail: d.id !== "s1" })), tables, orders, seq: 41,
+    v: 6, brand: { primary: "#172C2A", logo: "assets/brand/palatino-mark.jpg", tagline: "Ristorante · Pizzeria" }, splits: {}, adminPw: "Palatino2026", menu: SEED_MENU.map(d => ({ ...d, avail: d.id !== "s1" })), tables, orders, seq: 41,
     requests: [
       { id: uid(), table: "T3", type: "bill", ts: t - 3 * MIN, status: "open" },
       { id: uid(), table: "D2", type: "water", ts: t - 5 * MIN, status: "ack", by: "Luca" }
@@ -570,7 +572,7 @@ function seed() {
   };
 }
 let S;
-function load() { try { const j = JSON.parse(lsGet(KEY)); if (j && j.v === 5) return j; } catch (e) {} return null; }
+function load() { try { const j = JSON.parse(lsGet(KEY)); if (j && j.v === 6) return j; } catch (e) {} return null; }
 // some viewers (sandboxed previews, private modes) have no storage: the demo then just runs in memory
 const STORAGE_OK = (() => { try { localStorage.setItem("resto.t", "1"); localStorage.removeItem("resto.t"); return true; } catch (e) { return false; } })();
 function save() { if (!STORAGE_OK) return true; const ok = lsSet(KEY, JSON.stringify(S)); if (!ok) setTimeout(() => toast(L("Memoria del browser piena: usa meno foto", "Browser storage full — use fewer photos", "Tarayıcı depolaması dolu — daha az fotoğraf kullanın")), 0); return ok; }
@@ -816,7 +818,7 @@ function gMenu() {
         <button class="grow" style="text-align:left" data-go="#/guest/dish/${d.id}">
           <div class="row wrap" style="gap:4px;margin-bottom:4px">${d.avail ? d.tags.slice(0, 2).map(t => `<span class="tag ${t === "tradizione" || t === "casa" ? "terra" : "stone"}">${tagName(t)}</span>`).join("") : `<span class="tag err">${L("Esaurito", "Sold out", "Tükendi")}</span>`}</div>
           <div class="nm">${esc(d.name)}</div><div class="ds">${esc(d.d[ui.lang === "it" ? 0 : ui.lang === "en" ? 1 : 2])}</div>
-          <div class="price mt8">${eur(d.price)}${d.opt === "imp" ? ` <span class="muted" style="font-weight:500;font-size:.78rem">${L("da", "from", "başlayan")}</span>` : ""}</div>
+          <div class="price mt8">${d.opt === "vino" ? wineP(d) : eur(d.price)}${d.opt === "imp" ? ` <span class="muted" style="font-weight:500;font-size:.78rem">${L("da", "from", "başlayan")}</span>` : ""}</div>
         </button>
         <div class="col" style="align-items:flex-end;justify-content:${d.poster ? "flex-end" : "space-between"}">${d.poster ? (d.explode ? `<button class="chip" style="min-height:32px;font-size:.78rem" data-a="openX" data-v="${d.id}">${ic("layers")}${L("Ingredienti", "Ingredients", "İçindekiler")}</button>` : "") : thumb(d)}
           ${!d.avail ? `<button class="btn secondary sm" data-go="#/guest/dish/${d.id}">${L("Alternative", "Alternatives", "Alternatifler")}</button>` :
@@ -854,7 +856,7 @@ function gDish(id) {
     ${d.ing && d.ing.length ? `<div class="label mt24">${L("Nel piatto", "On the plate", "Tabakta neler var")}</div><ul class="ing mt8">${d.ing.map(x => `<li><span>${esc(x[0])}${ui.lang !== "it" ? `<small>${esc(ui.lang === "en" ? x[1] : x[2])}</small>` : ""}</span></li>`).join("")}</ul>${d.explode && ui.dview !== "x" ? `<button class="link mt8" style="display:inline-flex;gap:4px;align-items:center" data-a="dview" data-v="x">${ic("layers")}${L("Guarda gli ingredienti in esploso", "See the exploded view", "Malzemeleri katman katman gör")}</button>` : ""}` : ""}
     <div class="label mt24">${L("Allergeni (Reg. UE 1169/11)", "Allergens (EU 1169/11)", "Alerjenler (AB 1169/11)")}</div>
     <div class="row wrap mt8" style="gap:6px">${d.alg.length ? d.alg.map(a => `<span class="chip" style="min-height:30px;font-size:.8rem">${esc(algName(a))}</span>`).join("") : `<span class="body-md">${L("Nessuno dichiarato", "None declared", "Belirtilmiş alerjen yok")}</span>`}</div>${d.algTbd ? `<div class="body-md mt8" style="color:var(--terra-ink)">${ic("info")} ${L("Allergeni da confermare con la cucina: chiedi al personale.", "Allergens to be confirmed by the kitchen — ask the staff.", "Alerjen bilgisi mutfakla doğrulanacak; lütfen personele sorun.")}</div>` : ""}
-    ${d.opt ? `<div class="card mt24"><div class="label">${d.opt === "porz" ? L("Porzione", "Portion", "Porsiyon") : L("Impasto", "Dough", "Hamur")}</div><div class="col mt12">${OPTS[d.opt].map(o => `<button class="radio ${ui.dopt === o[0] ? "on" : ""}" data-a="dopt" data-v="${o[0]}"><span class="rb"></span><span class="grow">${optLabel(d, o[0])}</span><span class="body-md">${o[2] ? "+" + eur(o[2]) : L("Incluso", "Included", "Dahil")}</span></button>`).join("")}</div></div>` : ""}
+    ${d.opt ? `<div class="card mt24"><div class="label">${d.opt === "porz" ? L("Porzione", "Portion", "Porsiyon") : d.opt === "vino" ? L("Calice o bottiglia", "Glass or bottle", "Kadeh mi şişe mi") : L("Impasto", "Dough", "Hamur")}</div><div class="col mt12">${OPTS[d.opt].map(o => `<button class="radio ${ui.dopt === o[0] ? "on" : ""}" data-a="dopt" data-v="${o[0]}"><span class="rb"></span><span class="grow">${optLabel(d, o[0])}</span><span class="body-md">${o[2] ? "+" + eur(o[2]) : L("Incluso", "Included", "Dahil")}</span></button>`).join("")}</div></div>` : ""}
     ${d.cat === "primi" || d.cat === "pizze" ? `<div class="card dark mt12 row" style="gap:12px"><div class="ib" style="width:40px;height:40px;border-radius:4px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center">${ic("wine_bar")}</div><div class="grow"><div class="label">${L("Abbinamento", "Pairing", "Eşleşme")}</div><div class="t-sm" style="color:#fff">${d.cat === "pizze" ? "Barbera d'Asti DOCG" : "Langhe Nebbiolo DOC"}</div></div><button class="btn sm" style="background:#fff;color:var(--bosco)" data-a="quick" data-v="${d.cat === "pizze" ? "v1" : "v2"}">+ ${eur(d.cat === "pizze" ? 6 : 7)}</button></div>` : ""}
     <div class="field mt24"><label for="dnote">${L("Note per la cucina", "Notes for the kitchen", "Mutfak için not")}</label><textarea id="dnote" class="input" placeholder="${L("Es. senza formaggio, allergia…", "E.g. no cheese, allergy…", "Örn. peynirsiz, alerji…")}"></textarea><div class="body-md" style="font-size:.78rem">${L("Le note vengono stampate sulla comanda.", "Notes are printed on the kitchen ticket.", "Notlar mutfak fişine yazdırılır.")}</div></div>`;
   const bar = `<div class="row" style="background:var(--raised);border-top:1px solid var(--stone);padding:10px 12px;gap:10px"><div class="stepper"><button data-a="dq" data-v="-1" aria-label="-">${ic("remove")}</button><span class="tnum">${ui.dq}</span><button data-a="dq" data-v="1" aria-label="+">${ic("add")}</button></div><button class="btn primary grow" data-a="addDish">${L("Aggiungi all'ordine", "Add to order", "Siparişe ekle")} · ${eur(tot)}</button></div>`;
@@ -1188,7 +1190,7 @@ function aMenu() {
     <div class="card terra body-md" style="color:var(--terra-ink)">${ic("info")} ${L("Piatti dalle recensioni pubbliche; prezzi di esempio da confermare con il ristorante.", "Dishes from public reviews; example prices to be confirmed.", "Yemekler herkese açık yorumlardan; fiyatlar örnektir, restoranla doğrulanmalı.")}</div>
     <div class="chips mt16"><button class="chip ${ui.admCat === "all" ? "on" : ""}" data-a="admCat" data-v="all">${L("Tutto", "All", "Tümü")}</button>${CATS.map(c => `<button class="chip ${ui.admCat === c[0] ? "on" : ""}" data-a="admCat" data-v="${c[0]}">${c[1]()}</button>`).join("")}</div>
     <div class="tblwrap mt16"><table class="tbl"><tr><th>${L("Piatto", "Dish", "Ürün")}</th><th>${L("Categoria", "Category", "Kategori")}</th><th>${L("Postazione", "Station", "İstasyon")}</th><th>${L("Allergeni", "Allergens", "Alerjenler")}</th><th style="text-align:right">${L("Prezzo", "Price", "Fiyat")}</th><th>${L("Disponibile", "Available", "Mevcut")}</th><th></th></tr>
-      ${rows.map(d => `<tr><td><div class="row">${`<div class="thumb c-${d.cat}" style="width:36px;height:36px">${d.img || d.poster ? `<img src="${asset(d.img || d.poster)}" alt="">` : `<span style="font-size:18px;display:flex">${ic(CATS.find(c => c[0] === d.cat)[2])}</span>`}</div>`}<span class="t-sm">${esc(d.name)}</span></div></td><td class="body-md">${CATS.find(c => c[0] === d.cat)[1]()}</td><td><span class="tag stone">${stName(d.st)}</span></td><td class="body-md" style="max-width:220px">${d.alg.map(algName).join(", ") || "—"}</td><td class="price" style="text-align:right">${eur(d.price)}</td><td><button class="switch ${d.avail ? "on" : ""}" data-a="avail" data-v="${d.id}" aria-label="avail"></button></td><td><button class="btn ghost sm" data-a="editDish" data-v="${d.id}">${ic("edit")}</button></td></tr>`).join("")}</table></div>`,
+      ${rows.map(d => `<tr><td><div class="row">${`<div class="thumb c-${d.cat}" style="width:36px;height:36px">${d.img || d.poster ? `<img src="${asset(d.img || d.poster)}" alt="">` : `<span style="font-size:18px;display:flex">${ic(CATS.find(c => c[0] === d.cat)[2])}</span>`}</div>`}<span class="t-sm">${esc(d.name)}</span></div></td><td class="body-md">${CATS.find(c => c[0] === d.cat)[1]()}</td><td><span class="tag stone">${stName(d.st)}</span></td><td class="body-md" style="max-width:220px">${d.alg.map(algName).join(", ") || "—"}</td><td class="price" style="text-align:right">${eur(d.price)}${d.opt === "vino" ? `<div class="body-md" style="font-weight:500">${L("bott.", "bottle", "şişe")} ${eur(d.bottle)}</div>` : ""}</td><td><button class="switch ${d.avail ? "on" : ""}" data-a="avail" data-v="${d.id}" aria-label="avail"></button></td><td><button class="btn ghost sm" data-a="editDish" data-v="${d.id}">${ic("edit")}</button></td></tr>`).join("")}</table></div>`,
     `<button class="btn primary" data-a="editDish" data-v="">${ic("add")}${L("Nuovo piatto", "New dish", "Yeni ürün")}</button>`);
 }
 function aTables() {
@@ -1553,7 +1555,7 @@ function sheetHTML() {
   if (s.k === "dish") { const d = s.d; c = `<div class="h2">${s.isNew ? L("Nuovo piatto", "New dish", "Yeni ürün") : L("Modifica piatto", "Edit dish", "Ürünü düzenle")}</div>
     <div class="field mt12"><label for="ed-name">${L("Nome", "Name", "Ad")}</label><input id="ed-name" class="input" value="${esc(d.name)}"></div>
     <div class="row mt12" style="gap:12px">${d.img || d.poster ? `<img src="${asset(d.img || d.poster)}" alt="" style="width:76px;height:76px;object-fit:cover;border-radius:4px">` : `<div class="thumb c-${d.cat}">${ic(CATS.find(c2 => c2[0] === d.cat)[2])}</div>`}<div class="col" style="gap:6px;align-items:flex-start"><label class="btn secondary sm" style="cursor:pointer">${ic("photo_camera")}${d.img ? L("Cambia foto", "Change photo", "Fotoğrafı değiştir") : L("Carica foto", "Upload photo", "Fotoğraf yükle")}<input type="file" accept="image/*" data-ch="edImg" hidden></label>${d.img ? `<button class="btn ghost sm" style="color:var(--err)" data-a="edImgDel">${ic("delete")}${L("Rimuovi", "Remove", "Kaldır")}</button>` : ""}<label class="btn secondary sm" style="cursor:pointer">${ic("layers")}${d.explode ? L("Cambia esploso", "Change exploded view", "Patlatılmış görseli değiştir") : L("Carica esploso ingredienti", "Upload exploded view", "Patlatılmış görsel yükle")}<input type="file" accept="image/*" data-ch="edX" hidden></label>${d.explode ? `<button class="btn ghost sm" style="color:var(--err)" data-a="edXDel">${ic("delete")}${L("Rimuovi esploso", "Remove exploded view", "Patlatılmış görseli kaldır")}</button>` : ""}<span class="body-md" style="font-size:.75rem">${L("Ridotta a 640 px · senza foto si usa l'illustrazione", "Resized to 640 px · without a photo the illustration is used", "640 px'e küçültülür · fotoğraf yoksa çizim kullanılır")}</span></div></div>
-    <div class="grid2 mt12"><div class="field"><label for="ed-price">${L("Prezzo €", "Price €", "Fiyat €")}</label><input id="ed-price" class="input" inputmode="decimal" value="${String(d.price).replace(".", ",")}"></div><div class="field"><label for="ed-cat">${L("Categoria", "Category", "Kategori")}</label><select id="ed-cat" class="input">${CATS.map(c2 => `<option value="${c2[0]}" ${d.cat === c2[0] ? "selected" : ""}>${c2[1]()}</option>`).join("")}</select></div></div>
+    <div class="grid2 mt12"><div class="field"><label for="ed-price">${L("Prezzo €", "Price €", "Fiyat €")}</label><input id="ed-price" class="input" inputmode="decimal" value="${String(d.price).replace(".", ",")}"></div>${d.cat === "vini" ? `<div class="field"><label for="ed-bottle">${L("Bottiglia €", "Bottle €", "Şişe €")}</label><input id="ed-bottle" class="input" inputmode="decimal" value="${String(d.bottle || "").replace(".", ",")}"></div>` : ""}<div class="field"><label for="ed-cat">${L("Categoria", "Category", "Kategori")}</label><select id="ed-cat" class="input">${CATS.map(c2 => `<option value="${c2[0]}" ${d.cat === c2[0] ? "selected" : ""}>${c2[1]()}</option>`).join("")}</select></div></div>
     <div class="field mt12"><label for="ed-st">${L("Postazione", "Station", "İstasyon")}</label><select id="ed-st" class="input">${["cucina", "pizzeria", "bar"].map(x => `<option value="${x}" ${d.st === x ? "selected" : ""}>${stName(x)}</option>`).join("")}</select></div>
     ${["IT", "EN", "TR"].map((l, i) => `<div class="field mt12"><label for="ed-d${i}">${L("Descrizione", "Description", "Açıklama")} ${l}</label><input id="ed-d${i}" class="input" value="${esc(d.d[i])}"></div>`).join("")}
     <div class="label mt16">${L("Allergeni", "Allergens", "Alerjenler")}</div><div class="row wrap mt8" style="gap:6px">${Object.keys(ALG).map(k => `<button class="chip ${d.alg.includes(k) ? "on" : ""}" data-a="edAlg" data-v="${k}">${algName(k)}</button>`).join("")}</div>
@@ -1826,7 +1828,7 @@ Object.assign(A, {
   splitN: v => { const [t, d] = v.split("|"); const sp = splitState(t); sp.parts = Math.max(2, Math.min(12, sp.parts + +d)); sp.paid = []; commit(); },
   payShare: v => { const [t, k] = v.split("|"); const sp = splitState(t); sp.paid = sp.paid.includes(k) ? sp.paid.filter(x => x !== k) : [...sp.paid, k]; commit(); }
 });
-function keepEd() { const d = ui.sheet.d; if (!$("#ed-name")) return; d.name = val("ed-name"); d.price = parseFloat(val("ed-price").replace(",", ".")) || 0; d.cat = val("ed-cat"); d.st = val("ed-st"); d.d = [val("ed-d0"), val("ed-d1"), val("ed-d2")]; }
+function keepEd() { const d = ui.sheet.d; if (!$("#ed-name")) return; d.name = val("ed-name"); d.price = parseFloat(val("ed-price").replace(",", ".")) || 0; if ($("#ed-bottle")) { d.bottle = parseFloat(val("ed-bottle").replace(",", ".")) || 0; if (d.bottle) d.opt = "vino"; else { delete d.bottle; if (d.opt === "vino") delete d.opt; } } d.cat = val("ed-cat"); d.st = val("ed-st"); d.d = [val("ed-d0"), val("ed-d1"), val("ed-d2")]; }
 
 document.addEventListener("click", e => {
   const el = e.target.closest("[data-a],[data-go],a[href^='#/']");

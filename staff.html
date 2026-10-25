@@ -415,7 +415,7 @@ window.ASSETS = {"assets/brand/palatino-mark.jpg": "data:image/jpeg;base64,/9j/4
    RESTO · Palatino — clickable app prototype (design review)
    All roles share one demo store (localStorage, synced across tabs).
    ============================================================ */
-const KEY = "resto.palatino.v5";
+const KEY = "resto.palatino.v6";
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -482,10 +482,12 @@ const ALG = {
 const algName = k => { const a = ALG[k]; return ui.lang === "it" ? a[0] : ui.lang === "en" ? a[1] : a[2]; };
 const OPTS = {
   porz: [["std", ["Normale", "Regular", "Normal"], 0], ["abb", ["Abbondante", "Large", "Büyük porsiyon"], 3]],
+  vino: [["cal", ["Calice", "Glass", "Kadeh"], 0], ["bot", ["Bottiglia 0,75 l", "Bottle 0.75 l", "Şişe 0,75 l"], 0]],
   imp: [["cla", ["Impasto classico", "Classic dough", "Klasik hamur"], 0], ["int", ["Integrale", "Wholemeal", "Tam buğday"], 1.5], ["sg", ["Senza glutine", "Gluten-free", "Glutensiz"], 3]]
 };
+const wineP = d => `<span style="font-weight:500;font-size:.8rem;color:var(--ink-2)">${L("Calice", "Glass", "Kadeh")}</span> ${eur(d.price)} <span class="muted">·</span> <span style="font-weight:500;font-size:.8rem;color:var(--ink-2)">${L("Bottiglia", "Bottle", "Şişe")}</span> ${eur(d.bottle)}`;
 const optLabel = (d, k) => { if (!d.opt) return ""; const o = OPTS[d.opt].find(x => x[0] === k); return o ? (ui.lang === "it" ? o[1][0] : ui.lang === "en" ? o[1][1] : o[1][2]) : ""; };
-const optDelta = (d, k) => { if (!d.opt) return 0; const o = OPTS[d.opt].find(x => x[0] === k); return o ? o[2] : 0; };
+const optDelta = (d, k) => { if (!d.opt) return 0; if (d.opt === "vino") return k === "bot" ? (d.bottle || d.price) - d.price : 0; const o = OPTS[d.opt].find(x => x[0] === k); return o ? o[2] : 0; };
 
 const SEED_MENU = [
   { id: "a1", cat: "anti", st: "cucina", name: "Vitello tonnato", price: 13, alg: ["uova", "pesce", "sen"], tags: ["tradizione"], poster: "assets/posters/vitello-tonnato.jpg",
@@ -544,12 +546,12 @@ const SEED_MENU = [
     d: ["Con caramello o frutti di bosco.", "With caramel or berries.", "Karamel veya orman meyveleriyle."] },
   { id: "d3", cat: "dolci", st: "cucina", name: "Zabaione e paste di meliga", price: 7, alg: ["uova", "lat", "glu", "sol"], tags: [],
     d: ["Zabaione caldo al Moscato con biscotti di meliga.", "Warm Moscato zabaione with meliga biscuits.", "Moscato'lu sıcak zabaione, meliga bisküvileriyle."] },
-  { id: "v1", cat: "vini", st: "bar", name: "Barbera d'Asti DOCG · calice", price: 6, alg: ["sol"], tags: [],
+  { id: "v1", cat: "vini", st: "bar", name: "Barbera d'Asti DOCG", price: 6, bottle: 26, opt: "vino", alg: ["sol"], tags: [], poster: "assets/posters/barbera-asti.jpg",
     d: ["Rosso fresco e succoso, ottimo con la pizza.", "Fresh, juicy red — great with pizza.", "Taze, sulu kırmızı; pizzayla çok iyi gider."] },
-  { id: "v2", cat: "vini", st: "bar", name: "Langhe Nebbiolo DOC · calice", price: 7, alg: ["sol"], tags: [],
+  { id: "v2", cat: "vini", st: "bar", name: "Langhe Nebbiolo DOC", price: 7, bottle: 32, opt: "vino", alg: ["sol"], tags: [], poster: "assets/posters/langhe-nebbiolo.jpg",
     d: ["Elegante, per agnolotti e bollito.", "Elegant; pairs with agnolotti and bollito.", "Zarif; agnolotti ve bollito ile."] },
-  { id: "v3", cat: "vini", st: "bar", name: "Dolcetto d'Alba DOC · bottiglia", price: 24, alg: ["sol"], tags: ["condividere"],
-    d: ["Bottiglia 0,75 l da condividere.", "0.75 l bottle to share.", "Paylaşmak için 0,75 l şişe."] },
+  { id: "v3", cat: "vini", st: "bar", name: "Dolcetto d'Alba DOC", price: 5, bottle: 24, opt: "vino", alg: ["sol"], tags: ["condividere"],
+    d: ["Rosso morbido e profumato, da tutto pasto.", "Soft, fragrant red for the whole meal.", "Yumuşak ve aromatik kırmızı; her yemeğe uyar."] },
   { id: "b1", cat: "bevande", st: "bar", name: "Acqua minerale 0,75 l", price: 3, alg: [], tags: ["veg", "gf"],
     d: ["Naturale o frizzante.", "Still or sparkling.", "Sade veya maden suyu."] },
   { id: "b2", cat: "bevande", st: "bar", name: "Birra artigianale piemontese", price: 6, alg: ["glu"], tags: ["veg"],
@@ -581,15 +583,15 @@ function seed() {
   Object.assign(T("D2"), { state: "seated", guests: 2, openedAt: t - 25 * MIN });
   Object.assign(T("T6"), { state: "reserved" });
   Object.assign(T("D6"), { state: "reserved" });
-  const it = (dishId, qty, status, extra = {}) => ({ uid: uid(), dishId, qty, status, st: SEED_MENU.find(d => d.id === dishId).st, opt: SEED_MENU.find(d => d.id === dishId).opt ? (SEED_MENU.find(d => d.id === dishId).opt === "porz" ? "std" : "cla") : null, note: "", course: COURSE[SEED_MENU.find(d => d.id === dishId).cat], held: false, ...extra });
+  const it = (dishId, qty, status, extra = {}) => ({ uid: uid(), dishId, qty, status, st: SEED_MENU.find(d => d.id === dishId).st, opt: SEED_MENU.find(d => d.id === dishId).opt ? OPTS[SEED_MENU.find(d => d.id === dishId).opt][0][0] : null, note: "", course: COURSE[SEED_MENU.find(d => d.id === dishId).cat], held: false, ...extra });
   const orders = [
-    { id: uid(), no: 38, table: "T3", by: "Sala", ts: t - 55 * MIN, note: "", items: [it("z2", 2, "served"), it("z3", 1, "served"), it("v3", 1, "served")] },
+    { id: uid(), no: 38, table: "T3", by: "Sala", ts: t - 55 * MIN, note: "", items: [it("z2", 2, "served"), it("z3", 1, "served"), it("v3", 1, "served", { opt: "bot" })] },
     { id: uid(), no: 39, table: "D2", by: "Sala", ts: t - 16 * MIN, note: "", items: [it("s2", 1, "cooking"), it("p3", 1, "cooking"), it("v1", 2, "served")] },
     { id: uid(), no: 40, table: "D4", by: "Marco", ts: t - 9 * MIN, note: "", items: [it("a3", 1, "cooking"), it("v1", 2, "ready")] },
     { id: uid(), no: 41, table: "T5", by: "Sala", ts: t - 3 * MIN, note: L("1 ospite celiaco", "1 coeliac guest", "1 çölyak misafir"), items: [it("p1", 2, "new"), it("z1", 1, "new", { opt: "sg", note: "celiaco" }), it("b1", 2, "new"), it("d1", 2, "new", { held: true })] }
   ];
   return {
-    v: 5, brand: { primary: "#172C2A", logo: "assets/brand/palatino-mark.jpg", tagline: "Ristorante · Pizzeria" }, splits: {}, adminPw: "Palatino2026", menu: SEED_MENU.map(d => ({ ...d, avail: d.id !== "s1" })), tables, orders, seq: 41,
+    v: 6, brand: { primary: "#172C2A", logo: "assets/brand/palatino-mark.jpg", tagline: "Ristorante · Pizzeria" }, splits: {}, adminPw: "Palatino2026", menu: SEED_MENU.map(d => ({ ...d, avail: d.id !== "s1" })), tables, orders, seq: 41,
     requests: [
       { id: uid(), table: "T3", type: "bill", ts: t - 3 * MIN, status: "open" },
       { id: uid(), table: "D2", type: "water", ts: t - 5 * MIN, status: "ack", by: "Luca" }
@@ -629,7 +631,7 @@ function seed() {
   };
 }
 let S;
-function load() { try { const j = JSON.parse(lsGet(KEY)); if (j && j.v === 5) return j; } catch (e) {} return null; }
+function load() { try { const j = JSON.parse(lsGet(KEY)); if (j && j.v === 6) return j; } catch (e) {} return null; }
 // some viewers (sandboxed previews, private modes) have no storage: the demo then just runs in memory
 const STORAGE_OK = (() => { try { localStorage.setItem("resto.t", "1"); localStorage.removeItem("resto.t"); return true; } catch (e) { return false; } })();
 function save() { if (!STORAGE_OK) return true; const ok = lsSet(KEY, JSON.stringify(S)); if (!ok) setTimeout(() => toast(L("Memoria del browser piena: usa meno foto", "Browser storage full — use fewer photos", "Tarayıcı depolaması dolu — daha az fotoğraf kullanın")), 0); return ok; }
@@ -1004,7 +1006,7 @@ function sheetHTML() {
   if (s.k === "dish") { const d = s.d; c = `<div class="h2">${s.isNew ? L("Nuovo piatto", "New dish", "Yeni ürün") : L("Modifica piatto", "Edit dish", "Ürünü düzenle")}</div>
     <div class="field mt12"><label for="ed-name">${L("Nome", "Name", "Ad")}</label><input id="ed-name" class="input" value="${esc(d.name)}"></div>
     <div class="row mt12" style="gap:12px">${d.img || d.poster ? `<img src="${asset(d.img || d.poster)}" alt="" style="width:76px;height:76px;object-fit:cover;border-radius:4px">` : `<div class="thumb c-${d.cat}">${ic(CATS.find(c2 => c2[0] === d.cat)[2])}</div>`}<div class="col" style="gap:6px;align-items:flex-start"><label class="btn secondary sm" style="cursor:pointer">${ic("photo_camera")}${d.img ? L("Cambia foto", "Change photo", "Fotoğrafı değiştir") : L("Carica foto", "Upload photo", "Fotoğraf yükle")}<input type="file" accept="image/*" data-ch="edImg" hidden></label>${d.img ? `<button class="btn ghost sm" style="color:var(--err)" data-a="edImgDel">${ic("delete")}${L("Rimuovi", "Remove", "Kaldır")}</button>` : ""}<label class="btn secondary sm" style="cursor:pointer">${ic("layers")}${d.explode ? L("Cambia esploso", "Change exploded view", "Patlatılmış görseli değiştir") : L("Carica esploso ingredienti", "Upload exploded view", "Patlatılmış görsel yükle")}<input type="file" accept="image/*" data-ch="edX" hidden></label>${d.explode ? `<button class="btn ghost sm" style="color:var(--err)" data-a="edXDel">${ic("delete")}${L("Rimuovi esploso", "Remove exploded view", "Patlatılmış görseli kaldır")}</button>` : ""}<span class="body-md" style="font-size:.75rem">${L("Ridotta a 640 px · senza foto si usa l'illustrazione", "Resized to 640 px · without a photo the illustration is used", "640 px'e küçültülür · fotoğraf yoksa çizim kullanılır")}</span></div></div>
-    <div class="grid2 mt12"><div class="field"><label for="ed-price">${L("Prezzo €", "Price €", "Fiyat €")}</label><input id="ed-price" class="input" inputmode="decimal" value="${String(d.price).replace(".", ",")}"></div><div class="field"><label for="ed-cat">${L("Categoria", "Category", "Kategori")}</label><select id="ed-cat" class="input">${CATS.map(c2 => `<option value="${c2[0]}" ${d.cat === c2[0] ? "selected" : ""}>${c2[1]()}</option>`).join("")}</select></div></div>
+    <div class="grid2 mt12"><div class="field"><label for="ed-price">${L("Prezzo €", "Price €", "Fiyat €")}</label><input id="ed-price" class="input" inputmode="decimal" value="${String(d.price).replace(".", ",")}"></div>${d.cat === "vini" ? `<div class="field"><label for="ed-bottle">${L("Bottiglia €", "Bottle €", "Şişe €")}</label><input id="ed-bottle" class="input" inputmode="decimal" value="${String(d.bottle || "").replace(".", ",")}"></div>` : ""}<div class="field"><label for="ed-cat">${L("Categoria", "Category", "Kategori")}</label><select id="ed-cat" class="input">${CATS.map(c2 => `<option value="${c2[0]}" ${d.cat === c2[0] ? "selected" : ""}>${c2[1]()}</option>`).join("")}</select></div></div>
     <div class="field mt12"><label for="ed-st">${L("Postazione", "Station", "İstasyon")}</label><select id="ed-st" class="input">${["cucina", "pizzeria", "bar"].map(x => `<option value="${x}" ${d.st === x ? "selected" : ""}>${stName(x)}</option>`).join("")}</select></div>
     ${["IT", "EN", "TR"].map((l, i) => `<div class="field mt12"><label for="ed-d${i}">${L("Descrizione", "Description", "Açıklama")} ${l}</label><input id="ed-d${i}" class="input" value="${esc(d.d[i])}"></div>`).join("")}
     <div class="label mt16">${L("Allergeni", "Allergens", "Alerjenler")}</div><div class="row wrap mt8" style="gap:6px">${Object.keys(ALG).map(k => `<button class="chip ${d.alg.includes(k) ? "on" : ""}" data-a="edAlg" data-v="${k}">${algName(k)}</button>`).join("")}</div>
@@ -1277,7 +1279,7 @@ Object.assign(A, {
   splitN: v => { const [t, d] = v.split("|"); const sp = splitState(t); sp.parts = Math.max(2, Math.min(12, sp.parts + +d)); sp.paid = []; commit(); },
   payShare: v => { const [t, k] = v.split("|"); const sp = splitState(t); sp.paid = sp.paid.includes(k) ? sp.paid.filter(x => x !== k) : [...sp.paid, k]; commit(); }
 });
-function keepEd() { const d = ui.sheet.d; if (!$("#ed-name")) return; d.name = val("ed-name"); d.price = parseFloat(val("ed-price").replace(",", ".")) || 0; d.cat = val("ed-cat"); d.st = val("ed-st"); d.d = [val("ed-d0"), val("ed-d1"), val("ed-d2")]; }
+function keepEd() { const d = ui.sheet.d; if (!$("#ed-name")) return; d.name = val("ed-name"); d.price = parseFloat(val("ed-price").replace(",", ".")) || 0; if ($("#ed-bottle")) { d.bottle = parseFloat(val("ed-bottle").replace(",", ".")) || 0; if (d.bottle) d.opt = "vino"; else { delete d.bottle; if (d.opt === "vino") delete d.opt; } } d.cat = val("ed-cat"); d.st = val("ed-st"); d.d = [val("ed-d0"), val("ed-d1"), val("ed-d2")]; }
 
 document.addEventListener("click", e => {
   const el = e.target.closest("[data-a],[data-go],a[href^='#/']");
