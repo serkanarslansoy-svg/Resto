@@ -363,7 +363,7 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--raised);border:1p
    RESTO · Palatino — clickable app prototype (design review)
    All roles share one demo store (localStorage, synced across tabs).
    ============================================================ */
-const KEY = "resto.palatino.v7";
+const KEY = "resto.palatino.v8";
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -452,15 +452,15 @@ const SEED_MENU = [
     d: ["Polpo tenero, patate, prezzemolo e limone.", "Tender octopus, potatoes, parsley and lemon.", "Yumuşak ahtapot, patates, maydanoz ve limon."] },
   { id: "p1", cat: "primi", st: "cucina", name: "Agnolotti al sugo d'arrosto", price: 14, alg: ["glu", "uova", "lat", "sed"], tags: ["tradizione", "casa"], opt: "porz", poster: "assets/posters/agnolotti-arrosto.jpg",
     d: ["Agnolotti artigianali ripieni, con sugo d'arrosto.", "Hand-made filled pasta with roast jus.", "El yapımı dolgulu makarna, rosto suyu ile."] },
-  { id: "p2", cat: "primi", st: "cucina", name: "Agnolotti al Castelmagno", price: 15, alg: ["glu", "uova", "lat"], tags: ["casa"], opt: "porz",
+  { id: "p2", cat: "primi", st: "cucina", name: "Agnolotti al Castelmagno", poster: "assets/posters/agnolotti-castelmagno.jpg", explode: "assets/exploded/agnolotti-castelmagno.jpg", ing: [["Agnolotti", "Agnolotti", "Agnolotti"], ["Salsa al Castelmagno", "Castelmagno sauce", "Castelmagno sosu"], ["Castelmagno grattugiato", "Grated Castelmagno", "Rendelenmiş Castelmagno"], ["Noci", "Walnuts", "Ceviz"], ["Pepe nero", "Black pepper", "Karabiber"], ["Salvia fresca", "Fresh sage", "Taze adaçayı"]], price: 15, alg: ["glu", "uova", "lat", "noci"], tags: ["casa"], opt: "porz",
     d: ["Agnolotti con fonduta di Castelmagno DOP.", "Agnolotti with Castelmagno PDO cheese fondue.", "Castelmagno peyniri fondüsü ile agnolotti."] },
   { id: "p3", cat: "primi", st: "cucina", name: "Spaghetti cozze e vongole", price: 16, alg: ["glu", "mol"], tags: [], opt: "porz", poster: "assets/posters/spaghetti-cozze-vongole.jpg",
     d: ["Cozze, vongole veraci, aglio e prezzemolo.", "Mussels, clams, garlic and parsley.", "Midye, akivades, sarımsak ve maydanoz."] },
   { id: "p4", cat: "primi", st: "cucina", name: "Paccheri gorgonzola e salsiccia", price: 14, alg: ["glu", "lat"], tags: [], opt: "porz", poster: "assets/posters/paccheri-gorgonzola.jpg",
     d: ["Crema di gorgonzola e salsiccia di Bra.", "Gorgonzola cream and Bra sausage.", "Gorgonzola kreması ve Bra sosisi."] },
-  { id: "p5", cat: "primi", st: "cucina", name: "Polenta al ragù", price: 12, alg: ["sed", "lat"], tags: ["gf"],
+  { id: "p5", cat: "primi", st: "cucina", name: "Polenta al ragù", poster: "assets/posters/polenta-ragu.jpg", price: 12, alg: ["sed", "lat"], tags: ["gf"],
     d: ["Polenta morbida con ragù di carne a lunga cottura.", "Soft polenta with slow-cooked meat ragù.", "Yumuşak polenta, uzun pişmiş et sosu ile."] },
-  { id: "s1", cat: "secondi", st: "cucina", name: "Bollito misto alla piemontese", price: 22, alg: ["sed", "pesce"], tags: ["tradizione"],
+  { id: "s1", cat: "secondi", st: "cucina", name: "Bollito misto alla piemontese", explode: "assets/exploded/bollito-misto.jpg", ing: [["Manzo", "Beef", "Dana eti"], ["Scaramella", "Beef brisket (scaramella)", "Dana döş (scaramella)"], ["Lingua", "Tongue", "Dil"], ["Ossobuco", "Ossobuco", "İncik (ossobuco)"], ["Cappone", "Capon", "İğdiş horoz"], ["Salsa verde (bagnetto)", "Green sauce (bagnetto)", "Yeşil sos (bagnetto)"], ["Verza e spinaci", "Savoy cabbage & spinach", "Kıvırcık lahana ve ıspanak"], ["Sedano, carote, rapa", "Celery, carrots, turnip", "Kereviz, havuç, şalgam"]], price: 22, alg: ["sed", "pesce"], tags: ["tradizione"],
     d: ["Tagli misti di manzo bollito con bagnetto verde.", "Mixed boiled beef cuts with green sauce.", "Karışık haşlanmış dana, yeşil sos (bagnetto) ile."] },
   { id: "s2", cat: "secondi", st: "cucina", name: "Fritto di mare con gamberi", price: 20, alg: ["glu", "cro", "mol", "pesce"], tags: [], poster: "assets/posters/fritto-mare.jpg",
     d: ["Calamari, gamberi e pesce fritti, limone.", "Fried squid, prawns and fish with lemon.", "Kızarmış kalamar, karides ve balık, limonla."] },
@@ -577,7 +577,7 @@ function seed() {
     { id: uid(), no: 41, table: "T5", by: "Sala", ts: t - 3 * MIN, note: L("1 ospite celiaco", "1 coeliac guest", "1 çölyak misafir"), items: [it("p1", 2, "new"), it("z1", 1, "new", { opt: "sg", note: "celiaco" }), it("b1", 2, "new"), it("d1", 2, "new", { held: true })] }
   ];
   return {
-    v: 7, brand: { primary: "#172C2A", logo: "assets/brand/palatino-mark.jpg", tagline: "Ristorante · Pizzeria" }, splits: {}, adminPw: "Palatino2026", menu: SEED_MENU.map(d => ({ ...d, avail: d.id !== "s1" })), tables, orders, seq: 41,
+    v: 8, brand: { primary: "#172C2A", logo: "assets/brand/palatino-mark.jpg", tagline: "Ristorante · Pizzeria" }, splits: {}, adminPw: "Palatino2026", menu: SEED_MENU.map(d => ({ ...d, avail: d.id !== "s1" })), tables, orders, seq: 41,
     requests: [
       { id: uid(), table: "T3", type: "bill", ts: t - 3 * MIN, status: "open" },
       { id: uid(), table: "D2", type: "water", ts: t - 5 * MIN, status: "ack", by: "Luca" }
@@ -617,7 +617,7 @@ function seed() {
   };
 }
 let S;
-function load() { try { const j = JSON.parse(lsGet(KEY)); if (j && j.v === 7) return j; } catch (e) {} return null; }
+function load() { try { const j = JSON.parse(lsGet(KEY)); if (j && j.v === 8) return j; } catch (e) {} return null; }
 // some viewers (sandboxed previews, private modes) have no storage: the demo then just runs in memory
 const STORAGE_OK = (() => { try { localStorage.setItem("resto.t", "1"); localStorage.removeItem("resto.t"); return true; } catch (e) { return false; } })();
 function save() { if (!STORAGE_OK) return true; const ok = lsSet(KEY, JSON.stringify(S)); if (!ok) setTimeout(() => toast(L("Memoria del browser piena: usa meno foto", "Browser storage full — use fewer photos", "Tarayıcı depolaması dolu — daha az fotoğraf kullanın")), 0); return ok; }
@@ -671,7 +671,7 @@ const ic = (n, cls = "") => {
   if (!d) { if (window.console) console.warn("icon missing:", n); return ""; }
   return `<svg class="ms ${cls}" viewBox="0 -960 960 960" aria-hidden="true" focusable="false"><path d="${d}"/></svg>`;
 };
-const thumb = (d, cls = "") => { const c = CATS.find(x => x[0] === d.cat); return `<div class="thumb c-${d.cat} ${cls} ${d.avail ? "" : "soldout"}">${ic(c[2])}${d.img || d.poster ? `<img src="${asset(d.img || d.poster)}" alt="" loading="lazy" onerror="this.remove()">` : ""}</div>`; };
+const thumb = (d, cls = "") => { const c = CATS.find(x => x[0] === d.cat); return `<div class="thumb c-${d.cat} ${cls} ${d.avail ? "" : "soldout"}">${ic(c[2])}${d.img || d.poster || d.explode ? `<img src="${asset(d.img || d.poster || d.explode)}" alt="" loading="lazy" onerror="this.remove()">` : ""}</div>`; };
 const BRAND = [["#172C2A", "Bosco", "#203A38", "rgba(23,44,42,.08)"], ["#3A2A1F", "Noce", "#4A3628", "rgba(58,42,31,.08)"], ["#5A1E2B", "Bordeaux", "#6E2A38", "rgba(90,30,43,.08)"], ["#1F3A5F", "Blu Savoia", "#2A4A75", "rgba(31,58,95,.08)"], ["#2E2A26", "Antracite", "#3D3833", "rgba(46,42,38,.08)"]];
 const logoInner = (fallback = "P") => S.brand && S.brand.logo ? `<img src="${asset(S.brand.logo)}" alt="${R.name}" onerror="this.replaceWith('${fallback}')">` : fallback;
 function readImg(file, max, type, cb) {
@@ -1611,9 +1611,9 @@ function sheetHTML() {
   if (s.k === "allday") { const agg = {}; S.orders.forEach(o => { if (!o.closed) o.items.forEach(i => { if ((ui.kSt === "all" || i.st === ui.kSt) && !i.held && (i.status === "new" || i.status === "cooking")) agg[i.dishId + "|" + (i.opt || "")] = (agg[i.dishId + "|" + (i.opt || "")] || 0) + i.qty; }); });
     const rows = Object.entries(agg).sort((a, b) => b[1] - a[1]);
     c = `<div class="h2">${L("Totali da preparare", "All-day counts", "Hazırlanacak toplamlar")} · ${stName(ui.kSt)}</div><p class="body-md mt8">${L("Somma dei piatti aperti su tutte le comande: utile per preparare in serie.", "Open dishes summed across all tickets, for batch prep.", "Tüm fişlerdeki açık ürünlerin toplamı; toplu hazırlık için.")}</p><div class="list mt12">${rows.map(([k, n]) => { const [id, op] = k.split("|"); const d = dish(id); return `<div class="row between" style="padding:10px 0"><span class="t-sm">${esc(d.name)}${op && d.opt && OPTS[d.opt][0][0] !== op ? ` <span class="tag terra">${optLabel(d, op)}</span>` : ""}</span><span class="h2 tnum">${n}</span></div>`; }).join("") || `<div class="body-md" style="padding:10px 0">${L("Niente in coda", "Nothing queued", "Bekleyen yok")}</div>`}</div>`; }
-  if (s.k === "zoom") { const d = dish(s.v); const li = ui.lang === "it" ? 0 : ui.lang === "en" ? 1 : 2; const ing = dishIng(d), kc = dishKcal(d); const src = s.x && d.explode ? d.explode : (d.poster || d.img);
+  if (s.k === "zoom") { const d = dish(s.v); const li = ui.lang === "it" ? 0 : ui.lang === "en" ? 1 : 2; const ing = dishIng(d), kc = dishKcal(d); const src = s.x && d.explode ? d.explode : (d.poster || d.img || d.explode);
     c = `${src ? `<img src="${asset(src)}" alt="${esc(d.name)}" style="width:100%;border-radius:8px;display:block;max-height:62dvh;object-fit:contain;background:#1a120c">` : thumb(d, "lg")}
-      ${d.explode ? `<div class="seg mt8">${[[false, "restaurant", L("Il piatto", "The dish", "Tabak")], [true, "layers", L("Ingredienti", "Ingredients", "İçindekiler")]].map(([x, i, n]) => `<button class="${!!s.x === x ? "on" : ""}" data-a="zoomX">${ic(i)}${n}</button>`).join("")}</div>` : ""}
+      ${d.explode && (d.poster || d.img) ? `<div class="seg mt8">${[[false, "restaurant", L("Il piatto", "The dish", "Tabak")], [true, "layers", L("Ingredienti", "Ingredients", "İçindekiler")]].map(([x, i, n]) => `<button class="${!!s.x === x ? "on" : ""}" data-a="zoomX">${ic(i)}${n}</button>`).join("")}</div>` : ""}
       <div class="row between mt16" style="align-items:flex-start"><div><div class="h2">${esc(d.name)}</div><div class="body-md">${esc(d.d[li])}</div></div><div class="price" style="white-space:nowrap">${d.opt === "vino" ? eur(d.price) + "<br><span class=\"body-md\">" + L("bott.", "bottle", "şişe") + " " + eur(d.bottle) + "</span>" : eur(d.price)}</div></div>
       ${kc != null ? `<div class="kcal mt12">${ic("local_fire_department")}≈ ${kc} kcal <span class="body-md" style="font-weight:500">· ${d.cat === "vini" ? L("a calice, stima", "per glass, estimate", "kadeh başı, tahmini") : L("a porzione, stima", "per portion, estimate", "porsiyon başı, tahmini")}</span></div>` : ""}
       ${ing ? `<div class="label mt16">${L("Ingredienti", "Ingredients", "İçindekiler")}</div><ul class="ing mt8">${ing.map(x => `<li><span>${esc(x[0])}${ui.lang !== "it" ? `<small>${esc(ui.lang === "en" ? x[1] : x[2])}</small>` : ""}</span></li>`).join("")}</ul>` : ""}
