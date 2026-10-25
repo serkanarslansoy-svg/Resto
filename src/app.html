@@ -356,7 +356,7 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--raised);border:1p
    RESTO · Palatino — clickable app prototype (design review)
    All roles share one demo store (localStorage, synced across tabs).
    ============================================================ */
-const KEY = "resto.palatino.v4";
+const KEY = "resto.palatino.v5";
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -433,11 +433,14 @@ const SEED_MENU = [
     d: ["Girello di vitello rosa, salsa tonnata e capperi.", "Pink veal round, tuna sauce and capers.", "Pembe dana, ton balıklı sos ve kapari."] },
   { id: "a2", cat: "anti", st: "cucina", name: "Tagliere di salumi e formaggi", price: 16, alg: ["lat", "glu"], tags: ["condividere"], poster: "assets/posters/tagliere.jpg",
     d: ["Salumi e formaggi del territorio con pane della casa.", "Local cured meats and cheeses with house bread.", "Yöresel şarküteri ve peynir tabağı, ev yapımı ekmekle."] },
-  { id: "a3", cat: "anti", st: "cucina", name: "Tris di tomini", price: 11, alg: ["lat"], tags: ["veg", "gf"],
-    d: ["Tomini al verde, al rosso ed elettrici.", "Tomino cheeses: green sauce, red sauce and spicy.", "Üç çeşit tomino peyniri: yeşil sos, kırmızı sos, acılı."] },
-  { id: "a4", cat: "anti", st: "cucina", name: "Insalata di polpo e patate", price: 14, alg: ["mol"], tags: ["gf"],
+  { id: "a3", cat: "anti", st: "cucina", name: "Tris di tomini", price: 11, alg: ["lat", "noci"], tags: ["veg"], poster: "assets/posters/tris-tomini.jpg",
+    d: ["Tre gusti di tomino: salsa verde, salsa rossa e piccante.", "Three tomino cheeses: green sauce, red sauce and spicy.", "Üç çeşit tomino peyniri: yeşil sos, kırmızı sos ve acılı."] },
+  { id: "a5", cat: "anti", st: "cucina", name: "Tometta boscaiola alla piastra", price: 12, alg: ["lat", "noci", "sol"], algTbd: true, tags: ["veg"], poster: "assets/posters/tometta-boscaiola.jpg", explode: "assets/exploded/tometta-boscaiola.jpg",
+    ing: [["Tometta alla piastra", "Griddled tometta cheese", "Izgara tometta peyniri"], ["Purè di pere", "Pear purée", "Armut püresi"], ["Aceto balsamico", "Balsamic vinegar", "Balzamik sirke"], ["Noci caramellate", "Caramelised walnuts", "Karamelize ceviz"], ["Noci", "Walnuts", "Ceviz"], ["Erbette fresche", "Fresh herbs", "Taze otlar"]],
+    d: ["Servita calda con purè di pere, noci e aceto balsamico.", "Served warm with pear purée, walnuts and balsamic vinegar.", "Sıcak servis: armut püresi, ceviz ve balzamik sirke ile."] },
+  { id: "a4", cat: "anti", st: "cucina", name: "Insalata di polpo e patate", price: 14, alg: ["mol"], tags: ["gf"], poster: "assets/posters/insalata-polpo.jpg",
     d: ["Polpo tenero, patate, prezzemolo e limone.", "Tender octopus, potatoes, parsley and lemon.", "Yumuşak ahtapot, patates, maydanoz ve limon."] },
-  { id: "p1", cat: "primi", st: "cucina", name: "Agnolotti al sugo d'arrosto", price: 14, alg: ["glu", "uova", "lat", "sed"], tags: ["tradizione", "casa"], opt: "porz",
+  { id: "p1", cat: "primi", st: "cucina", name: "Agnolotti al sugo d'arrosto", price: 14, alg: ["glu", "uova", "lat", "sed"], tags: ["tradizione", "casa"], opt: "porz", poster: "assets/posters/agnolotti-arrosto.jpg",
     d: ["Pasta ripiena fatta a mano, sugo d'arrosto ristretto.", "Hand-made filled pasta with roast jus.", "El yapımı dolgulu makarna, rosto suyu ile."] },
   { id: "p2", cat: "primi", st: "cucina", name: "Agnolotti al Castelmagno", price: 15, alg: ["glu", "uova", "lat"], tags: ["casa"], opt: "porz",
     d: ["Agnolotti con fonduta di Castelmagno DOP.", "Agnolotti with Castelmagno PDO cheese fondue.", "Castelmagno peyniri fondüsü ile agnolotti."] },
@@ -449,7 +452,7 @@ const SEED_MENU = [
     d: ["Polenta morbida con ragù di carne a lunga cottura.", "Soft polenta with slow-cooked meat ragù.", "Yumuşak polenta, uzun pişmiş et sosu ile."] },
   { id: "s1", cat: "secondi", st: "cucina", name: "Bollito misto alla piemontese", price: 22, alg: ["sed", "pesce"], tags: ["tradizione"],
     d: ["Tagli misti di manzo bollito con bagnetto verde.", "Mixed boiled beef cuts with green sauce.", "Karışık haşlanmış dana, yeşil sos (bagnetto) ile."] },
-  { id: "s2", cat: "secondi", st: "cucina", name: "Fritto di mare con gamberi", price: 20, alg: ["glu", "cro", "mol", "pesce"], tags: [],
+  { id: "s2", cat: "secondi", st: "cucina", name: "Fritto di mare con gamberi", price: 20, alg: ["glu", "cro", "mol", "pesce"], tags: [], poster: "assets/posters/fritto-mare.jpg",
     d: ["Calamari, gamberi e pesce fritti, limone.", "Fried squid, prawns and fish with lemon.", "Kızarmış kalamar, karides ve balık, limonla."] },
   { id: "s3", cat: "secondi", st: "cucina", name: "Brasato al Barbera", price: 19, alg: ["sed", "sol"], algTbd: true, tags: ["tradizione"], poster: "assets/posters/brasato-barbera.jpg",
     d: ["Manzo brasato a lungo nel Barbera, patate al forno al rosmarino.", "Beef slow-braised in Barbera wine, rosemary roast potatoes.", "Barbera şarabında uzun süre pişmiş dana, biberiyeli fırın patates."] },
@@ -527,7 +530,7 @@ function seed() {
     { id: uid(), no: 41, table: "T5", by: "Sala", ts: t - 3 * MIN, note: L("1 ospite celiaco", "1 coeliac guest", "1 çölyak misafir"), items: [it("p1", 2, "new"), it("z1", 1, "new", { opt: "sg", note: "celiaco" }), it("b1", 2, "new"), it("d1", 2, "new", { held: true })] }
   ];
   return {
-    v: 4, brand: { primary: "#172C2A", logo: "assets/brand/palatino-mark.jpg", tagline: "Ristorante · Pizzeria" }, splits: {}, adminPw: "Palatino2026", menu: SEED_MENU.map(d => ({ ...d, avail: d.id !== "s1" })), tables, orders, seq: 41,
+    v: 5, brand: { primary: "#172C2A", logo: "assets/brand/palatino-mark.jpg", tagline: "Ristorante · Pizzeria" }, splits: {}, adminPw: "Palatino2026", menu: SEED_MENU.map(d => ({ ...d, avail: d.id !== "s1" })), tables, orders, seq: 41,
     requests: [
       { id: uid(), table: "T3", type: "bill", ts: t - 3 * MIN, status: "open" },
       { id: uid(), table: "D2", type: "water", ts: t - 5 * MIN, status: "ack", by: "Luca" }
@@ -567,7 +570,7 @@ function seed() {
   };
 }
 let S;
-function load() { try { const j = JSON.parse(lsGet(KEY)); if (j && j.v === 4) return j; } catch (e) {} return null; }
+function load() { try { const j = JSON.parse(lsGet(KEY)); if (j && j.v === 5) return j; } catch (e) {} return null; }
 // some viewers (sandboxed previews, private modes) have no storage: the demo then just runs in memory
 const STORAGE_OK = (() => { try { localStorage.setItem("resto.t", "1"); localStorage.removeItem("resto.t"); return true; } catch (e) { return false; } })();
 function save() { if (!STORAGE_OK) return true; const ok = lsSet(KEY, JSON.stringify(S)); if (!ok) setTimeout(() => toast(L("Memoria del browser piena: usa meno foto", "Browser storage full — use fewer photos", "Tarayıcı depolaması dolu — daha az fotoğraf kullanın")), 0); return ok; }

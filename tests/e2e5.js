@@ -10,7 +10,7 @@ const F = (h = '') => DIR + (PAGE[h.replace(/^#\/?/, '').split('/')[0]] || 'gues
   await p.goto(F('#/guest/join')); await p.evaluate(() => { localStorage.clear(); sessionStorage.clear(); }); await p.goto(F('#/guest/join')); await p.waitForTimeout(150);
   await p.goto(F('#/guest/join')); await p.fill('#jname', 'Ekin'); await p.click('[data-a=join]'); await p.waitForTimeout(200);
   await p.goto(F('#/guest/menu')); await p.waitForTimeout(150);
-  const chips = await p.locator('[data-a=openX]').count(); if (chips !== 5) errs.push('exploded chips ' + chips);
+  const chips = await p.locator('[data-a=openX]').count(); if (chips !== 6) errs.push('exploded chips ' + chips);
   await p.click('[data-a=openX][data-v=s6]'); await p.waitForTimeout(500);
   if (!/içindekiler/.test(await p.locator('.media img').getAttribute('alt'))) errs.push('openX did not open exploded');
   await p.screenshot({ path: OUT + '/x-stinco.png' });

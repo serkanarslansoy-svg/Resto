@@ -55,7 +55,7 @@ Girişler yalnızca demo amaçlıdır; doğrulama tarayıcıda yapılır.
 ## Veriler ve varsayımlar
 
 - **Gerçek:** isim, adres, telefon, çalışma saatleri, mutfak türü ve hizmetler Google Maps kaydı ile herkese açık listelerden (italia.it, Sluurpy) alındı. Yemek adları herkese açık yorumlardan derlendi.
-- **Restorandan:** afişler, patlatılmış içindekiler görselleri, logo ve afişlerdeki yemekler (Tagliere di salumi e formaggi, Spaghetti cozze e vongole, Brasato al Barbera, Tagliata di vitello alle erbe, Filetto in riduzione al Vermouth, Stinco di vitello alle noci, Milanese di vitello, Grigliata di mare). İçindekiler listeleri görsellerden alındı; fiyatlar ve alerjenler örnektir.
+- **Restorandan:** afişler, patlatılmış içindekiler görselleri, logo ve afişlerdeki yemekler (Tagliere di salumi e formaggi, Spaghetti cozze e vongole, Brasato al Barbera, Tagliata di vitello alle erbe, Filetto in riduzione al Vermouth, Stinco di vitello alle noci, Milanese di vitello, Grigliata di mare, Tris di tomini, Tometta boscaiola alla piastra, Insalata di polpo e patate, Fritto di mare con gamberi, Agnolotti al sugo d'arrosto). İçindekiler listeleri görsellerden alındı; fiyatlar ve alerjenler örnektir.
 - **Örnek:** fiyatlar, masa düzeni, personel isimleri, siparişler, raporlardaki 7/30 günlük veriler ve diğer "demo" işletmeler. Restoranla doğrulanmalıdır.
 - Cumartesi çalışma saatleri kaynaklarda net değildi.
 
